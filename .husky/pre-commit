@@ -1,0 +1,13 @@
+# Run custom pre-commit checks
+echo "🔍 Running pre-commit checks..."
+node scripts/pre-commit-checks.cjs || exit 1
+
+# Run lint-staged
+echo "🎨 Running lint-staged..."
+npx lint-staged || exit 1
+
+# Run tests for related files
+echo "🧪 Running related tests..."
+node scripts/run-related-tests.cjs || exit 1
+
+echo "✅ All pre-commit checks passed!"

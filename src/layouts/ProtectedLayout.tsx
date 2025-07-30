@@ -12,10 +12,8 @@ export function ProtectedLayout({ requiredRole }: ProtectedLayoutProps) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  console.log('[ProtectedLayout] Estado:', { loading, user: !!user, requiredRole, path: location.pathname });
 
   if (loading) {
-    console.log('[ProtectedLayout] Mostrando skeleton - loading es true');
     return (
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-screen">

@@ -21,7 +21,6 @@ export function HomePage() {
 
   // Si el usuario está autenticado pero el rol aún no está definido, seguir mostrando loading
   if (isAuthenticated && user && !user.role) {
-    console.log('[HomePage] Usuario autenticado pero rol no definido, mostrando loading...')
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

@@ -10,19 +10,6 @@ export function useAuth() {
   const isCustomer = auth.profile?.role === 'customer'
   const isOwner = auth.profile?.role === 'owner'
   
-  // Log para debug
-  if (auth.user && !auth.loading) {
-    console.log('[useAuth] Estado actual:', {
-      userId: auth.user.id,
-      email: auth.user.email,
-      profile: auth.profile,
-      role: auth.profile?.role,
-      isAdmin,
-      isBarber,
-      isCustomer,
-      isOwner
-    })
-  }
   
   // Create a simplified user object with role
   const user = auth.user ? {

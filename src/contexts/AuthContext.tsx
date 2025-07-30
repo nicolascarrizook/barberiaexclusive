@@ -29,10 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Efecto para actualizar loading cuando el perfil se ha intentado cargar
   useEffect(() => {
     if (user && profileAttempted && loading) {
-      console.log('[AuthContext] Usuario existe y perfil intentado, estableciendo loading = false')
       setLoading(false)
     } else if (!user && loading) {
-      console.log('[AuthContext] No hay usuario, estableciendo loading = false')
       setLoading(false)
     }
   }, [user, profileAttempted, loading])
@@ -40,14 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Cargar usuario al iniciar y escuchar cambios de autenticación
   useEffect(() => {
     let mounted = true
-    console.log('[AuthContext] Montando componente')
 
     // Función para cargar el perfil de usuario
     const loadUserProfile = async (userId: string) => {
       try {
-        console.log('[AuthContext] Cargando perfil para usuario:', userId)
         const profile = await authService.getProfile(userId)
-        console.log('[AuthContext] Perfil obtenido:', profile)
         if (mounted) {
           setProfile(profile)
           setProfileAttempted(true)
@@ -64,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const initializeAuth = async () => {
-      console.log('[AuthContext] Inicializando autenticación')
       try {
         // Primero probar la conexión con Supabase
         const isConnected = await authService.testConnection()
@@ -75,12 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Obtener la sesión actual
         const { data: { session }, error } = await supabase.auth.getSession()
-        console.log('[AuthContext] Resultado getSession:', {
-          hasSession: !!session,
-          userId: session?.user?.id,
-          email: session?.user?.email,
-          error
-        })
         
         if (error) {
           console.error('[AuthContext] Error obteniendo sesión:', error)
@@ -88,7 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         if (!mounted) {
-          console.log('[AuthContext] Componente desmontado, abortando inicialización')
           return
         }
 
@@ -106,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfile(null)
           }
         } else {
-          console.log('[AuthContext] No hay sesión activa')
           setProfile(null)
           setProfileAttempted(true)
         }
@@ -119,7 +105,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfileAttempted(true)
       } finally {
         if (mounted) {
-          console.log('[AuthContext] Inicialización completa')
           // El loading se manejará en el useEffect que monitorea user y profileAttempted
         }
       }
@@ -128,15 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[AuthContext] Auth state changed:', {
-          event,
-          hasSession: !!session,
-          userId: session?.user?.id,
-          email: session?.user?.email
-        })
         
         if (!mounted) {
-          console.log('[AuthContext] Componente desmontado, ignorando cambio de auth')
           return
         }
         
@@ -160,7 +138,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth()
 
     return () => {
-      console.log('[AuthContext] Desmontando componente')
       mounted = false
       subscription.unsubscribe()
     }

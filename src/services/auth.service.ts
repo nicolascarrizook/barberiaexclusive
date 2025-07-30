@@ -81,7 +81,6 @@ class AuthService {
 
   async getProfile(userId: string): Promise<Profile | null> {
     try {
-      console.log('[AuthService] Obteniendo perfil para userId:', userId)
       
       // Crear una promesa con timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -97,7 +96,6 @@ class AuthService {
       
       const { data, error } = await Promise.race([queryPromise, timeoutPromise])
 
-      console.log('[AuthService] Resultado de profiles query:', { data, error })
       
       if (error) {
         console.error('[AuthService] Error en query de perfil:', error)
@@ -195,7 +193,6 @@ class AuthService {
   // Función de prueba de conexión con Supabase
   async testConnection() {
     try {
-      console.log('[AuthService] Probando conexión con Supabase...')
       
       // Intentar una consulta simple para verificar la conexión
       const { data, error } = await supabase
@@ -208,7 +205,6 @@ class AuthService {
         return false
       }
       
-      console.log('[AuthService] Conexión con Supabase exitosa')
       return true
     } catch (error) {
       console.error('[AuthService] Fallo en prueba de conexión:', error)

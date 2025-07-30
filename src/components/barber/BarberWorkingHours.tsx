@@ -238,7 +238,6 @@ export function BarberWorkingHours({ barberId, barbershopId, isOwnerView = false
         });
       }
       
-      console.log('Updating form with barber schedule:', formData);
       form.reset(formData);
     }
   }, [barberSchedule, form]);

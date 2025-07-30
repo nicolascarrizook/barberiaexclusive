@@ -355,8 +355,6 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
    */
   async copyBarbershopHours(barberId: string): Promise<BarberSchedule[]> {
     try {
-      console.log('copyBarbershopHours called with barberId:', barberId);
-      
       // Validate barberId
       if (!barberId) {
         throw new Error('ID del barbero no proporcionado');

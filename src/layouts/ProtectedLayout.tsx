@@ -1,8 +1,8 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Navigation } from '@/components/layout/Navigation';
-import { Toaster } from '@/components/ui/toaster';
-import { Skeleton } from '@/components/ui/skeleton';
+// // // // // import { Navigate, Outlet, useLocation } from 'react-router-dom';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Navigation } from '@/components/layout/Navigation';
+// // // // // import { Toaster } from '@/components/ui/toaster';
+// // // // // import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProtectedLayoutProps {
   requiredRole?: 'admin' | 'barber' | 'customer' | 'owner';
@@ -10,8 +10,7 @@ interface ProtectedLayoutProps {
 
 export function ProtectedLayout({ requiredRole }: ProtectedLayoutProps) {
   const { user, loading } = useAuth();
-  const location = useLocation();
-
+  const _location = useLocation();
 
   if (loading) {
     return (

@@ -1,24 +1,28 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { useState } from 'react';
+// // // // // import { Link, useNavigate } from 'react-router-dom';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Label } from '@/components/ui/label';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Loader2 } from 'lucide-react';
 
-const registerSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  confirmPassword: z.string(),
-  fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Las contraseñas no coinciden',
-  path: ['confirmPassword'],
-});
+const _registerSchema = z
+  .object({
+    email: z.string().email('Email inválido'),
+    password: z
+      .string()
+      .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    confirmPassword: z.string(),
+    fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -27,8 +31,11 @@ interface RegisterFormProps {
   redirectTo?: string | false;
 }
 
-export function RegisterForm({ onSuccess, redirectTo = '/booking' }: RegisterFormProps) {
-  const navigate = useNavigate();
+export function RegisterForm({
+  onSuccess,
+  redirectTo = '/booking',
+}: RegisterFormProps) {
+  const _navigate = useNavigate();
   const { signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +48,7 @@ export function RegisterForm({ onSuccess, redirectTo = '/booking' }: RegisterFor
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const _onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
       await signUp({
@@ -54,7 +61,7 @@ export function RegisterForm({ onSuccess, redirectTo = '/booking' }: RegisterFor
         title: 'Cuenta creada',
         description: 'Tu cuenta ha sido creada exitosamente',
       });
-      
+
       if (onSuccess) {
         onSuccess();
       } else if (redirectTo !== false) {
@@ -64,7 +71,8 @@ export function RegisterForm({ onSuccess, redirectTo = '/booking' }: RegisterFor
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Error al crear la cuenta',
+        description:
+          error instanceof Error ? error.message : 'Error al crear la cuenta',
       });
     } finally {
       setIsLoading(false);
@@ -122,7 +130,9 @@ export function RegisterForm({ onSuccess, redirectTo = '/booking' }: RegisterFor
           disabled={isLoading}
         />
         {errors.confirmPassword && (
-          <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+          <p className="text-sm text-destructive">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 

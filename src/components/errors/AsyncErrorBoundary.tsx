@@ -1,6 +1,6 @@
-import { Component, ReactNode } from 'react';
-import { errorLogger } from '@/utils/errorLogger';
-import { ErrorMessage } from './ErrorMessage';
+// // // // // import { Component, ReactNode } from 'react';
+// // // // // import { errorLogger } from '@/utils/errorLogger';
+// // // // // import { ErrorMessage } from './ErrorMessage';
 
 interface Props {
   children: ReactNode;
@@ -45,7 +45,7 @@ export class AsyncErrorBoundary extends Component<Props, State> {
 
   handleRetry = () => {
     this.retryCount++;
-    
+
     if (this.retryCount <= this.maxRetries) {
       this.setState({
         hasError: false,
@@ -72,9 +72,13 @@ export class AsyncErrorBoundary extends Component<Props, State> {
         <div className="p-4">
           <ErrorMessage
             title="Error en operación asíncrona"
-            message={error.message || 'Ha ocurrido un error al cargar los datos.'}
+            message={
+              error.message || 'Ha ocurrido un error al cargar los datos.'
+            }
             severity="error"
-            onRetry={this.retryCount < this.maxRetries ? this.handleRetry : undefined}
+            onRetry={
+              this.retryCount < this.maxRetries ? this.handleRetry : undefined
+            }
             details={import.meta.env.DEV ? error.stack : undefined}
             showDetails={import.meta.env.DEV}
           />

@@ -1,0 +1,23 @@
+# Development Dockerfile
+ARG NODE_VERSION=20.11.0
+FROM node:${NODE_VERSION}-alpine
+
+WORKDIR /app
+
+# Install development tools
+RUN apk add --no-cache git
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy application files
+COPY . .
+
+# Expose development port
+EXPOSE 5173
+
+# Run development server
+CMD ["npm", "run", "dev"]

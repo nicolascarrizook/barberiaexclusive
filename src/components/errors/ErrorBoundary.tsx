@@ -1,6 +1,6 @@
 import React, { Component, ReactNode } from 'react';
-import { errorLogger } from '@/utils/errorLogger';
-import { ErrorFallback } from './ErrorFallback';
+// // // // // import { errorLogger } from '@/utils/errorLogger';
+// // // // // import { ErrorFallback } from './ErrorFallback';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo: null,
       errorBoundaryKey: 0,
     };
-    
+
     if (props.resetKeys) {
       this.previousResetKeys = props.resetKeys;
     }
@@ -84,21 +84,25 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     const { resetKeys, resetOnPropsChange } = this.props;
     const { hasError } = this.state;
-    
+
     // Reset error if resetKeys have changed
     if (hasError && resetKeys && prevProps.resetKeys) {
-      const hasResetKeyChanged = resetKeys.some(
+      const _hasResetKeyChanged = resetKeys.some(
         (key, idx) => key !== this.previousResetKeys[idx]
       );
-      
+
       if (hasResetKeyChanged) {
         this.resetError();
         this.previousResetKeys = resetKeys;
       }
     }
-    
+
     // Reset error if props have changed and resetOnPropsChange is true
-    if (hasError && resetOnPropsChange && prevProps.children !== this.props.children) {
+    if (
+      hasError &&
+      resetOnPropsChange &&
+      prevProps.children !== this.props.children
+    ) {
       this.resetError();
     }
   }
@@ -115,7 +119,7 @@ export class ErrorBoundary extends Component<Props, State> {
       this.resetTimeoutId = null;
     }
 
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       hasError: false,
       error: null,
       errorInfo: null,
@@ -125,7 +129,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     const { hasError, error, errorInfo } = this.state;
-    const { children, fallback: FallbackComponent, level = 'component' } = this.props;
+    const {
+      children,
+      fallback: FallbackComponent,
+      level = 'component',
+    } = this.props;
 
     if (hasError && error) {
       const errorProps: ErrorFallbackProps = {
@@ -142,6 +150,10 @@ export class ErrorBoundary extends Component<Props, State> {
       return <ErrorFallback {...errorProps} />;
     }
 
-    return <React.Fragment key={this.state.errorBoundaryKey}>{children}</React.Fragment>;
+    return (
+      <React.Fragment key={this.state.errorBoundaryKey}>
+        {children}
+      </React.Fragment>
+    );
   }
 }

@@ -1,32 +1,36 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { useState } from 'react';
+// // // // // import { Link, useNavigate } from 'react-router-dom';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Label } from '@/components/ui/label';
+// // // // // import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Loader2 } from 'lucide-react';
 
-const registerSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  confirmPassword: z.string(),
-  fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
-  role: z.enum(['customer', 'barber', 'admin']),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Las contraseñas no coinciden',
-  path: ['confirmPassword'],
-});
+const _registerSchema = z
+  .object({
+    email: z.string().email('Email inválido'),
+    password: z
+      .string()
+      .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    confirmPassword: z.string(),
+    fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
+    role: z.enum(['customer', 'barber', 'admin']),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const { signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +48,9 @@ export function RegisterPage() {
     },
   });
 
-  const selectedRole = watch('role');
+  const _selectedRole = watch('role');
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const _onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
       await signUp({
@@ -65,7 +69,8 @@ export function RegisterPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Error al crear la cuenta',
+        description:
+          error instanceof Error ? error.message : 'Error al crear la cuenta',
       });
     } finally {
       setIsLoading(false);
@@ -91,7 +96,9 @@ export function RegisterPage() {
             disabled={isLoading}
           />
           {errors.fullName && (
-            <p className="text-sm text-destructive">{errors.fullName.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.fullName.message}
+            </p>
           )}
         </div>
 
@@ -132,7 +139,9 @@ export function RegisterPage() {
             disabled={isLoading}
           />
           {errors.password && (
-            <p className="text-sm text-destructive">{errors.password.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
           )}
         </div>
 
@@ -145,7 +154,9 @@ export function RegisterPage() {
             disabled={isLoading}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
@@ -153,7 +164,9 @@ export function RegisterPage() {
           <Label>Tipo de cuenta</Label>
           <RadioGroup
             value={selectedRole}
-            onValueChange={(value) => setValue('role', value as 'customer' | 'barber' | 'admin')}
+            onValueChange={(value) =>
+              setValue('role', value as 'customer' | 'barber' | 'admin')
+            }
             disabled={isLoading}
           >
             <div className="flex items-center space-x-2">

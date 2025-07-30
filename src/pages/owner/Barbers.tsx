@@ -1,20 +1,21 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { barberService } from '@/services/barbers.service';
-import { barbershopService } from '@/services/barbershops.service';
-import { BarberFormDialog } from '@/components/owner/BarberFormDialog';
-import { BarberCreationDialog } from '@/components/owner/BarberCreationDialog';
-import { 
+// // // // // import { useState } from 'react';
+// // // // // import { Link } from 'react-router-dom';
+// // // // // import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Badge } from '@/components/ui/badge';
+// // // // // import { Switch } from '@/components/ui/switch';
+// // // // // import { Skeleton } from '@/components/ui/skeleton';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { barberService } from '@/services/barbers.service';
+// // // // // import { barbershopService } from '@/services/barbershops.service';
+// // // // // import { BarberFormDialog } from '@/components/owner/BarberFormDialog';
+// // // // // import { BarberCreationDialog } from '@/components/owner/BarberCreationDialog';
+// // // // // import { BarberScheduleDialog } from '@/components/owner/BarberScheduleDialog';
+// // // // // import { 
   ArrowLeft, 
   Plus, 
   Edit, 
@@ -24,7 +25,8 @@ import {
   DollarSign,
   AlertCircle,
   UserPlus,
-  Mail
+  Mail,
+  Calendar
 } from 'lucide-react';
 
 interface BarberWithProfile {
@@ -52,17 +54,22 @@ interface BarberWithProfile {
 export function Barbers() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isCreationDialogOpen, setIsCreationDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<BarberWithProfile | undefined>(undefined);
+  const [selectedBarberForSchedule, setSelectedBarberForSchedule] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Fetch barbershop data
   const { data: barbershop, isLoading: barbershopLoading } = useQuery({
     queryKey: ['owner-barbershop', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID');
-      const shops = await barbershopService.getByOwner(user.id);
+      const _shops = await barbershopService.getByOwner(user.id);
       return shops[0];
     },
     enabled: !!user?.id,
@@ -79,7 +86,7 @@ export function Barbers() {
   });
 
   // Toggle barber status mutation
-  const toggleStatusMutation = useMutation({
+  const _toggleStatusMutation = useMutation({
     mutationFn: async ({ barberId, isActive }: { barberId: string; isActive: boolean }) => {
       await barberService.updateBarber(barberId, { is_active: isActive });
     },
@@ -99,19 +106,27 @@ export function Barbers() {
     },
   });
 
-  const handleEditBarber = (barber: BarberWithProfile) => {
+  const _handleEditBarber = (barber: BarberWithProfile) => {
     setEditingBarber(barber);
     setIsFormDialogOpen(true);
   };
 
-  const handleToggleStatus = (barberId: string, currentStatus: boolean) => {
+  const _handleToggleStatus = (barberId: string, currentStatus: boolean) => {
     toggleStatusMutation.mutate({ barberId, isActive: !currentStatus });
   };
 
+  const _handleManageSchedule = (barber: BarberWithProfile) => {
+    setSelectedBarberForSchedule({
+      id: barber.id,
+      name: barber.display_name,
+    });
+    setIsScheduleDialogOpen(true);
+  };
+
   // Calculate statistics
-  const activeBarbers = barbers?.filter(b => b.is_active).length || 0;
-  const totalBarbers = barbers?.length || 0;
-  const averageRating = barbers?.length 
+  const _activeBarbers = barbers?.filter(b => b.is_active).length || 0;
+  const _totalBarbers = barbers?.length || 0;
+  const _averageRating = barbers?.length 
     ? (barbers.reduce((sum, barber) => sum + barber.rating, 0) / barbers.length)
     : 0;
 
@@ -277,13 +292,24 @@ export function Barbers() {
                       <CardTitle className="text-lg truncate">
                         {barber.display_name}
                       </CardTitle>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleEditBarber(barber)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleManageSchedule(barber)}
+                          title="Gestionar horarios"
+                        >
+                          <Calendar className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleEditBarber(barber)}
+                          title="Editar información"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     {barber.bio && (
                       <CardDescription className="line-clamp-2">
@@ -370,6 +396,19 @@ export function Barbers() {
         onOpenChange={setIsCreationDialogOpen}
         barbershopId={barbershop?.id}
       />
+
+      {selectedBarberForSchedule && barbershop && (
+        <BarberScheduleDialog
+          isOpen={isScheduleDialogOpen}
+          onClose={() => {
+            setIsScheduleDialogOpen(false);
+            setSelectedBarberForSchedule(null);
+          }}
+          barberId={selectedBarberForSchedule.id}
+          barbershopId={barbershop.id}
+          barberName={selectedBarberForSchedule.name}
+        />
+      )}
     </div>
   );
 }

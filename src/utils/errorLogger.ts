@@ -12,12 +12,16 @@ interface ErrorInfo {
 
 class ErrorLogger {
   private isDevelopment = import.meta.env.DEV;
-  
+
   /**
    * Logs an error to the console and prepares it for external logging services
    * In production, this would send to Sentry or similar service
    */
-  logError(error: Error, errorInfo?: React.ErrorInfo, additionalContext?: Record<string, any>) {
+  logError(
+    error: Error,
+    errorInfo?: React.ErrorInfo,
+    additionalContext?: Record<string, any>
+  ) {
     const errorData: ErrorInfo = {
       message: error.message,
       stack: error.stack,
@@ -50,7 +54,7 @@ class ErrorLogger {
       //   },
       //   extra: errorData,
       // });
-      
+
       // For now, just log to console
       console.error('Production error:', errorData);
     }
@@ -64,9 +68,12 @@ class ErrorLogger {
    */
   private storeErrorInSession(errorData: ErrorInfo) {
     try {
-      const existingErrors = this.getStoredErrors();
-      const updatedErrors = [errorData, ...existingErrors].slice(0, 10); // Keep last 10 errors
-      sessionStorage.setItem('barbershop_errors', JSON.stringify(updatedErrors));
+      const _existingErrors = this.getStoredErrors();
+      const _updatedErrors = [errorData, ...existingErrors].slice(0, 10); // Keep last 10 errors
+      sessionStorage.setItem(
+        'barbershop_errors',
+        JSON.stringify(updatedErrors)
+      );
     } catch (e) {
       // Fail silently if storage is full or unavailable
       console.warn('Failed to store error in session storage:', e);
@@ -78,7 +85,7 @@ class ErrorLogger {
    */
   getStoredErrors(): ErrorInfo[] {
     try {
-      const stored = sessionStorage.getItem('barbershop_errors');
+      const _stored = sessionStorage.getItem('barbershop_errors');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -100,7 +107,7 @@ class ErrorLogger {
    * Logs a warning (non-fatal error)
    */
   logWarning(message: string, context?: Record<string, any>) {
-    const warningData = {
+    const _warningData = {
       message,
       timestamp: new Date().toISOString(),
       url: window.location.href,
@@ -116,4 +123,4 @@ class ErrorLogger {
   }
 }
 
-export const errorLogger = new ErrorLogger();
+export const _errorLogger = new ErrorLogger();

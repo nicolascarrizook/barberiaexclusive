@@ -1,5 +1,5 @@
-import { vi } from 'vitest'
-import { Barber, Service, TimeSlot } from '@/types'
+// // // // // import { vi } from 'vitest'
+// // // // // import { Barber, Service, TimeSlot } from '@/types'
 
 // Mock data para tests
 export const mockServices: Service[] = [
@@ -33,7 +33,7 @@ export const mockServices: Service[] = [
     barbershop_id: '1',
     is_active: true,
   },
-]
+];
 
 export const mockBarbers: Barber[] = [
   {
@@ -68,7 +68,7 @@ export const mockBarbers: Barber[] = [
       role: 'barber',
     },
   },
-]
+];
 
 export const mockTimeSlots: TimeSlot[] = [
   { time: '09:00', available: true },
@@ -78,18 +78,18 @@ export const mockTimeSlots: TimeSlot[] = [
   { time: '11:00', available: true },
   { time: '11:30', available: false },
   { time: '12:00', available: true },
-]
+];
 
-export const mockAuthUser = {
+export const _mockAuthUser = {
   id: 'user123',
   email: 'test@example.com',
   user_metadata: {},
   app_metadata: {},
   aud: 'authenticated',
   created_at: '2024-01-01T00:00:00.000Z',
-}
+};
 
-export const mockUserProfile = {
+export const _mockUserProfile = {
   id: 'profile123',
   user_id: 'user123',
   full_name: 'Test User',
@@ -99,22 +99,22 @@ export const mockUserProfile = {
   role: 'client' as const,
   created_at: '2024-01-01T00:00:00.000Z',
   updated_at: '2024-01-01T00:00:00.000Z',
-}
+};
 
 // Mock de hooks
-export const createMockUseToast = () => {
-  const toast = vi.fn()
+export const _createMockUseToast = () => {
+  const _toast = vi.fn();
   return {
     toast,
     useToast: () => ({ toast }),
-  }
-}
+  };
+};
 
 // Mock de useNavigate
-export const createMockNavigate = () => vi.fn()
+export const _createMockNavigate = () => vi.fn();
 
 // Mock de AuthContext
-export const createMockAuthContext = (overrides?: any) => ({
+export const _createMockAuthContext = (overrides?: any) => ({
   user: mockAuthUser,
   profile: mockUserProfile,
   loading: false,
@@ -123,4 +123,4 @@ export const createMockAuthContext = (overrides?: any) => ({
   signOut: vi.fn(),
   updateProfile: vi.fn(),
   ...overrides,
-})
+});

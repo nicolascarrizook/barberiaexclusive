@@ -1,7 +1,7 @@
-import { BaseService } from './base.service';
-import { supabase } from '@/lib/supabase';
-import { Database } from '@/types/database';
-import { barbershopHoursService } from './barbershop-hours.service';
+// // // // // import { BaseService } from './base.service';
+// // // // // import { supabase } from '@/lib/supabase';
+// // // // // import { Database } from '@/types/database';
+// // // // // import { barbershopHoursService } from './barbershop-hours.service';
 
 // Type definitions from database - using working_hours until migration 007 is applied
 type WorkingHoursTable = Database['public']['Tables']['working_hours'];
@@ -102,7 +102,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   /**
    * Get schedule for a specific day
    */
-  async getDaySchedule(barberId: string, dayOfWeek: number): Promise<BarberSchedule | null> {
+  async getDaySchedule(
+    barberId: string,
+    dayOfWeek: number
+  ): Promise<BarberSchedule | null> {
     try {
       const { data, error } = await supabase
         .from(this.tableName)
@@ -128,7 +131,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   ): Promise<BarberSchedule | null> {
     try {
       // Check if schedule exists for this day
-      const existing = await this.getDaySchedule(barberId, daySchedule.day_of_week);
+      const _existing = await this.getDaySchedule(
+        barberId,
+        daySchedule.day_of_week
+      );
 
       // If barber is not working this day, delete the record if it exists
       if (!daySchedule.is_working) {
@@ -137,16 +143,21 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
             .from(this.tableName)
             .delete()
             .eq('id', existing.id);
-          
+
           if (error) throw error;
         }
         return null; // No record for non-working days
       }
 
       // Validate against barbershop hours before saving (only for working days)
-      const validation = await this.validateScheduleAgainstBarbershop(barberId, daySchedule);
+      const _validation = await this.validateScheduleAgainstBarbershop(
+        barberId,
+        daySchedule
+      );
       if (!validation.isValid) {
-        throw new Error(`Schedule validation failed: ${validation.errors.join(', ')}`);
+        throw new Error(
+          `Schedule validation failed: ${validation.errors.join(', ')}`
+        );
       }
 
       // Ensure we have valid times for working days
@@ -164,7 +175,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
             end_time: daySchedule.end_time,
             break_start: daySchedule.break_start,
             break_end: daySchedule.break_end,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', existing.id)
           .select()
@@ -183,7 +194,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
             start_time: daySchedule.start_time,
             end_time: daySchedule.end_time,
             break_start: daySchedule.break_start,
-            break_end: daySchedule.break_end
+            break_end: daySchedule.break_end,
           })
           .select()
           .single();
@@ -200,14 +211,16 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   /**
    * Update entire weekly schedule
    */
-  async updateWeeklySchedule(weeklySchedule: WeeklySchedule): Promise<BarberSchedule[]> {
+  async updateWeeklySchedule(
+    weeklySchedule: WeeklySchedule
+  ): Promise<BarberSchedule[]> {
     try {
       const results: BarberSchedule[] = [];
 
       // Validate all working days first
       for (const daySchedule of weeklySchedule.schedule) {
         if (daySchedule.is_working) {
-          const validation = await this.validateScheduleAgainstBarbershop(
+          const _validation = await this.validateScheduleAgainstBarbershop(
             weeklySchedule.barber_id,
             daySchedule
           );
@@ -221,7 +234,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 
       // Update each day
       for (const daySchedule of weeklySchedule.schedule) {
-        const updated = await this.upsertDaySchedule(weeklySchedule.barber_id, daySchedule);
+        const _updated = await this.upsertDaySchedule(
+          weeklySchedule.barber_id,
+          daySchedule
+        );
         // Only add to results if it's a working day (non-null)
         if (updated) {
           results.push(updated);
@@ -239,7 +255,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
    * Update barber weekly schedule (component method)
    * Converts the component format to the service format
    */
-  async updateBarberWeeklySchedule(barberId: string, weekSchedule: WeeklyBarberSchedule): Promise<void> {
+  async updateBarberWeeklySchedule(
+    barberId: string,
+    weekSchedule: WeeklyBarberSchedule
+  ): Promise<void> {
     try {
       const schedule: DaySchedule[] = [];
       const dayMap: Record<string, number> = {
@@ -258,10 +277,20 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
           schedule.push({
             day_of_week: dayMap[day],
             is_working: dayData.is_working,
-            start_time: dayData.is_working && dayData.start_time ? dayData.start_time : null,
-            end_time: dayData.is_working && dayData.end_time ? dayData.end_time : null,
-            break_start: dayData.is_working && dayData.break_start ? dayData.break_start : null,
-            break_end: dayData.is_working && dayData.break_end ? dayData.break_end : null,
+            start_time:
+              dayData.is_working && dayData.start_time
+                ? dayData.start_time
+                : null,
+            end_time:
+              dayData.is_working && dayData.end_time ? dayData.end_time : null,
+            break_start:
+              dayData.is_working && dayData.break_start
+                ? dayData.break_start
+                : null,
+            break_end:
+              dayData.is_working && dayData.break_end
+                ? dayData.break_end
+                : null,
           });
         }
       }
@@ -276,7 +305,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   /**
    * Copy barber schedule (component method for backward compatibility)
    */
-  async copyBarberSchedule(sourceBarberId: string, targetBarberId: string): Promise<void> {
+  async copyBarberSchedule(
+    sourceBarberId: string,
+    targetBarberId: string
+  ): Promise<void> {
     await this.copyScheduleFromBarber(targetBarberId, sourceBarberId);
   }
 
@@ -289,8 +321,8 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   ): Promise<BarberSchedule[]> {
     try {
       // Get source barber's schedule
-      const sourceSchedule = await this.getWeeklySchedule(sourceBarberId);
-      
+      const _sourceSchedule = await this.getWeeklySchedule(sourceBarberId);
+
       if (!sourceSchedule.length) {
         throw new Error('Source barber has no schedule defined');
       }
@@ -327,20 +359,22 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       if (targetBarber.barbershop_id !== sourceBarber.barbershop_id) {
-        throw new Error('Los barberos deben pertenecer a la misma barbería para copiar horarios');
+        throw new Error(
+          'Los barberos deben pertenecer a la misma barbería para copiar horarios'
+        );
       }
 
       // Copy schedule
       const weeklySchedule: WeeklySchedule = {
         barber_id: targetBarberId,
-        schedule: sourceSchedule.map(day => ({
+        schedule: sourceSchedule.map((day) => ({
           day_of_week: day.day_of_week,
           is_working: day.is_working,
           start_time: day.start_time,
           end_time: day.end_time,
           break_start: day.break_start,
-          break_end: day.break_end
-        }))
+          break_end: day.break_end,
+        })),
       };
 
       return await this.updateWeeklySchedule(weeklySchedule);
@@ -368,43 +402,59 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
         .maybeSingle();
 
       if (barberError) {
-        console.error('Error fetching barber in copyBarbershopHours:', barberError);
-        throw new Error('Error al buscar el barbero. Por favor, intenta nuevamente.');
+        console.error(
+          'Error fetching barber in copyBarbershopHours:',
+          barberError
+        );
+        throw new Error(
+          'Error al buscar el barbero. Por favor, intenta nuevamente.'
+        );
       }
 
       if (!barber) {
         console.error('Barber not found with ID:', barberId);
-        throw new Error('No se encontró el barbero. Por favor, verifica que el barbero esté registrado correctamente.');
+        throw new Error(
+          'No se encontró el barbero. Por favor, verifica que el barbero esté registrado correctamente.'
+        );
       }
 
       // Get barbershop hours
-      const barbershopHours = await this.barbershopHoursService.getBarbershopSchedule(
-        barber.barbershop_id
-      );
+      const _barbershopHours =
+        await this.barbershopHoursService.getBarbershopSchedule(
+          barber.barbershop_id
+        );
 
       if (!barbershopHours || barbershopHours.length === 0) {
-        throw new Error('La barbería no tiene horarios definidos. Por favor, configura primero los horarios de la barbería.');
+        throw new Error(
+          'La barbería no tiene horarios definidos. Por favor, configura primero los horarios de la barbería.'
+        );
       }
 
       // Convert barbershop hours to barber schedule
       const weeklySchedule: WeeklySchedule = {
         barber_id: barberId,
-        schedule: barbershopHours.map(day => ({
+        schedule: barbershopHours.map((day) => ({
           day_of_week: this.getDayOfWeekNumber(day.day_of_week),
           is_working: !day.is_closed,
           start_time: day.open_time,
           end_time: day.close_time,
           break_start: null,
-          break_end: null
-        }))
+          break_end: null,
+        })),
       };
 
       return await this.updateWeeklySchedule(weeklySchedule);
     } catch (error) {
       console.error('Error copying barbershop hours:', error);
       // Re-throw with a user-friendly message if it's not already our custom error
-      if (error instanceof Error && !error.message.includes('barbero') && !error.message.includes('barbería')) {
-        throw new Error('Error al copiar los horarios de la barbería. Por favor, intenta nuevamente.');
+      if (
+        error instanceof Error &&
+        !error.message.includes('barbero') &&
+        !error.message.includes('barbería')
+      ) {
+        throw new Error(
+          'Error al copiar los horarios de la barbería. Por favor, intenta nuevamente.'
+        );
       }
       throw error;
     }
@@ -433,7 +483,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
         .maybeSingle();
 
       if (barberError) {
-        console.error('Error fetching barber in validateScheduleAgainstBarbershop:', barberError);
+        console.error(
+          'Error fetching barber in validateScheduleAgainstBarbershop:',
+          barberError
+        );
         errors.push('Error al verificar el barbero');
         return { isValid: false, errors };
       }
@@ -444,7 +497,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       // Get barbershop hours for this day
-      const barbershopDay = await this.barbershopHoursService.getDaySchedule(
+      const _barbershopDay = await this.barbershopHoursService.getDaySchedule(
         barber.barbershop_id,
         this.getDayOfWeekEnum(schedule.day_of_week)
       );
@@ -456,9 +509,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 
       // Validate start and end times
       // Handle empty strings as well as null/undefined
-      const hasStartTime = schedule.start_time && schedule.start_time.trim() !== '';
-      const hasEndTime = schedule.end_time && schedule.end_time.trim() !== '';
-      
+      const _hasStartTime =
+        schedule.start_time && schedule.start_time.trim() !== '';
+      const _hasEndTime = schedule.end_time && schedule.end_time.trim() !== '';
+
       if (!hasStartTime || !hasEndTime) {
         errors.push('Start and end times are required when working');
         return { isValid: false, errors };
@@ -496,13 +550,13 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 
       return {
         isValid: errors.length === 0,
-        errors
+        errors,
       };
     } catch (error) {
       console.error('Error validating schedule:', error);
       return {
         isValid: false,
-        errors: ['Failed to validate schedule']
+        errors: ['Failed to validate schedule'],
       };
     }
   }
@@ -513,26 +567,29 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   async isBarberAvailable(params: AvailabilityCheckParams): Promise<boolean> {
     try {
       const { barber_id, date, start_time, end_time } = params;
-      const dayOfWeek = date.getDay();
+      const _dayOfWeek = date.getDay();
 
       // Get barber's schedule for this day
-      const daySchedule = await this.getDaySchedule(barber_id, dayOfWeek);
+      const _daySchedule = await this.getDaySchedule(barber_id, dayOfWeek);
 
       if (!daySchedule || !daySchedule.is_working) {
         return false;
       }
 
       // Check if requested time is within working hours
-      if (start_time < daySchedule.start_time! || end_time > daySchedule.end_time!) {
+      if (
+        start_time < daySchedule.start_time! ||
+        end_time > daySchedule.end_time!
+      ) {
         return false;
       }
 
       // Check if requested time overlaps with break
       if (daySchedule.break_start && daySchedule.break_end) {
-        const requestedStart = this.timeToMinutes(start_time);
-        const requestedEnd = this.timeToMinutes(end_time);
-        const breakStart = this.timeToMinutes(daySchedule.break_start);
-        const breakEnd = this.timeToMinutes(daySchedule.break_end);
+        const _requestedStart = this.timeToMinutes(start_time);
+        const _requestedEnd = this.timeToMinutes(end_time);
+        const _breakStart = this.timeToMinutes(daySchedule.break_start);
+        const _breakEnd = this.timeToMinutes(daySchedule.break_end);
 
         // Check for overlap
         if (requestedStart < breakEnd && requestedEnd > breakStart) {
@@ -541,9 +598,9 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       // Check for existing appointments on this date
-      const startOfDay = new Date(date);
+      const _startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
+      const _endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
       const { data: appointments } = await supabase
@@ -572,24 +629,28 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
     serviceDuration: number
   ): Promise<TimeSlot[]> {
     try {
-      const dayOfWeek = date.getDay();
-      const daySchedule = await this.getDaySchedule(barberId, dayOfWeek);
+      const _dayOfWeek = date.getDay();
+      const _daySchedule = await this.getDaySchedule(barberId, dayOfWeek);
 
       if (!daySchedule || !daySchedule.is_working) {
         return [];
       }
 
       const slots: TimeSlot[] = [];
-      const slotDuration = serviceDuration;
-      const workStart = this.timeToMinutes(daySchedule.start_time!);
-      const workEnd = this.timeToMinutes(daySchedule.end_time!);
-      const breakStart = daySchedule.break_start ? this.timeToMinutes(daySchedule.break_start) : null;
-      const breakEnd = daySchedule.break_end ? this.timeToMinutes(daySchedule.break_end) : null;
+      const _slotDuration = serviceDuration;
+      const _workStart = this.timeToMinutes(daySchedule.start_time!);
+      const _workEnd = this.timeToMinutes(daySchedule.end_time!);
+      const _breakStart = daySchedule.break_start
+        ? this.timeToMinutes(daySchedule.break_start)
+        : null;
+      const _breakEnd = daySchedule.break_end
+        ? this.timeToMinutes(daySchedule.break_end)
+        : null;
 
       // Get existing appointments for this date
-      const startOfDay = new Date(date);
+      const _startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
+      const _endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
       const { data: appointments } = await supabase
@@ -605,7 +666,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       let currentTime = workStart;
 
       while (currentTime + slotDuration <= workEnd) {
-        const slotEnd = currentTime + slotDuration;
+        const _slotEnd = currentTime + slotDuration;
 
         // Skip if overlaps with break
         if (breakStart !== null && breakEnd !== null) {
@@ -616,18 +677,22 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
         }
 
         // Check if slot is available (not overlapping with appointments)
-        const isAvailable = !appointments?.some(apt => {
-          const aptStartTime = new Date(apt.start_time);
-          const aptEndTime = new Date(apt.end_time);
-          const aptStart = this.timeToMinutes(`${aptStartTime.getHours().toString().padStart(2, '0')}:${aptStartTime.getMinutes().toString().padStart(2, '0')}`);
-          const aptEnd = this.timeToMinutes(`${aptEndTime.getHours().toString().padStart(2, '0')}:${aptEndTime.getMinutes().toString().padStart(2, '0')}`);
+        const _isAvailable = !appointments?.some((apt) => {
+          const _aptStartTime = new Date(apt.start_time);
+          const _aptEndTime = new Date(apt.end_time);
+          const _aptStart = this.timeToMinutes(
+            `${aptStartTime.getHours().toString().padStart(2, '0')}:${aptStartTime.getMinutes().toString().padStart(2, '0')}`
+          );
+          const _aptEnd = this.timeToMinutes(
+            `${aptEndTime.getHours().toString().padStart(2, '0')}:${aptEndTime.getMinutes().toString().padStart(2, '0')}`
+          );
           return currentTime < aptEnd && slotEnd > aptStart;
         });
 
         if (isAvailable) {
           slots.push({
             start: this.minutesToTime(currentTime),
-            end: this.minutesToTime(slotEnd)
+            end: this.minutesToTime(slotEnd),
           });
         }
 
@@ -693,10 +758,13 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       const { data: scheduled } = await supabase
         .from(this.tableName)
         .select('barber_id')
-        .in('barber_id', barbers.map(b => b.id));
+        .in(
+          'barber_id',
+          barbers.map((b) => b.id)
+        );
 
-      const scheduledIds = new Set(scheduled?.map(s => s.barber_id) || []);
-      return barbers.filter(b => !scheduledIds.has(b.id)).map(b => b.id);
+      const _scheduledIds = new Set(scheduled?.map((s) => s.barber_id) || []);
+      return barbers.filter((b) => !scheduledIds.has(b.id)).map((b) => b.id);
     } catch (error) {
       console.error('Error getting barbers without schedule:', error);
       return [];
@@ -710,15 +778,17 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   }
 
   private minutesToTime(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    const _hours = Math.floor(minutes / 60);
+    const _mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
   }
 
-  private getDayOfWeekEnum(dayNumber: number): Database['public']['Enums']['day_of_week'] {
+  private getDayOfWeekEnum(
+    dayNumber: number
+  ): Database['public']['Enums']['day_of_week'] {
     const dayMap: Record<number, Database['public']['Enums']['day_of_week']> = {
       1: 'monday',
-      2: 'tuesday', 
+      2: 'tuesday',
       3: 'wednesday',
       4: 'thursday',
       5: 'friday',
@@ -728,7 +798,9 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
     return dayMap[dayNumber];
   }
 
-  private getDayOfWeekNumber(dayName: Database['public']['Enums']['day_of_week']): number {
+  private getDayOfWeekNumber(
+    dayName: Database['public']['Enums']['day_of_week']
+  ): number {
     const dayMap: Record<Database['public']['Enums']['day_of_week'], number> = {
       monday: 1,
       tuesday: 2,
@@ -743,4 +815,4 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 }
 
 // Export a singleton instance
-export const barberSchedulesService = new BarberSchedulesService();
+export const _barberSchedulesService = new BarberSchedulesService();

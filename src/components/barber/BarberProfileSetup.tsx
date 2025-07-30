@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
+// // // // // import { useState } from 'react';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { z } from 'zod';
+// // // // // import { useMutation } from '@tanstack/react-query';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Textarea } from '@/components/ui/textarea';
+// // // // // import {
   Form,
   FormControl,
   FormDescription,
@@ -17,11 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { profileService } from '@/services/profiles.service';
-import { Loader2, User, Phone, Camera } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// // // // // import { profileService } from '@/services/profiles.service';
+// // // // // import { Loader2, User, Phone, Camera } from 'lucide-react';
+// // // // // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const profileSchema = z.object({
+const _profileSchema = z.object({
   full_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   phone: z.string()
     .regex(/^\+?[0-9\s-()]+$/, 'Formato de teléfono inválido')
@@ -46,7 +46,7 @@ export function BarberProfileSetup({
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<ProfileFormData>({
+  const _form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: user?.full_name || '',
@@ -55,7 +55,7 @@ export function BarberProfileSetup({
     },
   });
 
-  const updateProfileMutation = useMutation({
+  const _updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
       if (!user?.id) throw new Error('Usuario no autenticado');
       
@@ -70,13 +70,13 @@ export function BarberProfileSetup({
     },
     onError: (error) => {
       console.error('Error updating profile:', error);
-      const message = error instanceof Error ? error.message : 'Error al actualizar el perfil';
+      const _message = error instanceof Error ? error.message : 'Error al actualizar el perfil';
       onError(message);
       setIsSubmitting(false);
     },
   });
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const _onSubmit = async (data: ProfileFormData) => {
     setIsSubmitting(true);
     updateProfileMutation.mutate(data);
   };

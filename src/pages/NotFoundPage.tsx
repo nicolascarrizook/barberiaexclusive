@@ -1,12 +1,12 @@
-import { FileQuestion, Home, Search, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
+// // // // // import { FileQuestion, Home, Search, ArrowLeft } from 'lucide-react';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { useNavigate } from 'react-router-dom';
 
 export function NotFoundPage() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
 
-  const suggestions = [
+  const _suggestions = [
     { path: '/', label: 'Página de inicio', icon: Home },
     { path: '/booking', label: 'Reservar cita', icon: Search },
   ];
@@ -28,12 +28,14 @@ export function NotFoundPage() {
 
         <CardContent className="space-y-6">
           <p className="text-center text-muted-foreground">
-            Lo sentimos, no pudimos encontrar la página que estás buscando. 
-            Es posible que haya sido movida, eliminada o que nunca haya existido.
+            Lo sentimos, no pudimos encontrar la página que estás buscando. Es
+            posible que haya sido movida, eliminada o que nunca haya existido.
           </p>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-center">Páginas sugeridas:</p>
+            <p className="text-sm font-medium text-center">
+              Páginas sugeridas:
+            </p>
             <div className="grid gap-2">
               {suggestions.map(({ path, label, icon: Icon }) => (
                 <Button
@@ -51,16 +53,16 @@ export function NotFoundPage() {
         </CardContent>
 
         <CardFooter className="flex gap-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="flex-1"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver atrás
           </Button>
-          <Button 
-            variant="default" 
+          <Button
+            variant="default"
             className="flex-1"
             onClick={() => navigate('/')}
           >

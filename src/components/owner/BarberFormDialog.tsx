@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
+import {useEffect} from 'react';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { z } from 'zod';
+// // // // // import { useMutation, useQueryClient } from '@tanstack/react-query';
+// // // // // import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,11 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import {
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Textarea } from '@/components/ui/textarea';
+// // // // // import { Switch } from '@/components/ui/switch';
+// // // // // import {
   Form,
   FormControl,
   FormDescription,
@@ -24,12 +24,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { barberService } from '@/services/barbers.service';
-import { Save, Loader2, Plus, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { barberService } from '@/services/barbers.service';
+// // // // // import { Save, Loader2, Plus, AlertCircle } from 'lucide-react';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const barberSchema = z.object({
+const _barberSchema = z.object({
   display_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   full_name: z.string().min(2, 'El nombre completo debe tener al menos 2 caracteres'),
@@ -80,9 +80,9 @@ export function BarberFormDialog({
   barbershopId 
 }: BarberFormDialogProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
-  const form = useForm<BarberFormData>({
+  const _form = useForm<BarberFormData>({
     resolver: zodResolver(barberSchema),
     defaultValues: {
       display_name: '',
@@ -116,12 +116,12 @@ export function BarberFormDialog({
 
   // Remove create mutation - only editing is allowed
 
-  const updateMutation = useMutation({
+  const _updateMutation = useMutation({
     mutationFn: async (data: BarberFormData) => {
       if (!barber?.id) throw new Error('No barber ID');
       
       // Parse specialties from comma-separated string
-      const specialties = data.specialties 
+      const _specialties = data.specialties 
         ? data.specialties.split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
@@ -154,11 +154,11 @@ export function BarberFormDialog({
     },
   });
 
-  const onSubmit = async (data: BarberFormData) => {
+  const _onSubmit = async (data: BarberFormData) => {
     updateMutation.mutate(data);
   };
 
-  const isLoading = updateMutation.isPending;
+  const _isLoading = updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

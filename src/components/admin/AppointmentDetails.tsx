@@ -1,18 +1,18 @@
-import {
+// // // // // import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Appointment } from "@/types";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Calendar, Clock, DollarSign, Phone, Mail, User, FileText } from "lucide-react";
+// // // // // import { Badge } from "@/components/ui/badge";
+// // // // // import { Button } from "@/components/ui/button";
+// // // // // import { Separator } from "@/components/ui/separator";
+// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// // // // // import { Appointment } from "@/types";
+// // // // // import { format } from "date-fns";
+// // // // // import { es } from "date-fns/locale";
+// // // // // import { Calendar, Clock, DollarSign, Phone, Mail, User, FileText } from "lucide-react";
 
 interface AppointmentDetailsProps {
   appointment: Appointment | null;
@@ -29,7 +29,7 @@ export function AppointmentDetails({
 }: AppointmentDetailsProps) {
   if (!appointment) return null;
 
-  const getStatusBadge = (status: Appointment['status']) => {
+  const _getStatusBadge = (status: Appointment['status']) => {
     const variants: Record<Appointment['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending: 'secondary',
       confirmed: 'default',

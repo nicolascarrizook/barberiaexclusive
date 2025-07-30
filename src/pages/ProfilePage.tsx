@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { useState } from 'react';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Camera } from 'lucide-react';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Label } from '@/components/ui/label';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Loader2, Camera } from 'lucide-react';
 
-const profileSchema = z.object({
+const _profileSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
 });
@@ -35,7 +35,7 @@ export function ProfilePage() {
     },
   });
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const _onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
     try {
       await updateProfile({
@@ -50,7 +50,10 @@ export function ProfilePage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Error al actualizar el perfil',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Error al actualizar el perfil',
       });
     } finally {
       setIsLoading(false);
@@ -71,9 +74,13 @@ export function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || ''} />
+              <AvatarImage
+                src={profile?.avatar_url || undefined}
+                alt={profile?.full_name || ''}
+              />
               <AvatarFallback>
-                {profile?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+                {profile?.full_name?.charAt(0).toUpperCase() ||
+                  user?.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <Button variant="outline" size="sm">
@@ -105,7 +112,9 @@ export function ProfilePage() {
                 disabled={isLoading}
               />
               {errors.fullName && (
-                <p className="text-sm text-destructive">{errors.fullName.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.fullName.message}
+                </p>
               )}
             </div>
 
@@ -118,14 +127,24 @@ export function ProfilePage() {
                 disabled={isLoading}
               />
               {errors.phone && (
-                <p className="text-sm text-destructive">{errors.phone.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.phone.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label>Rol</Label>
               <Input
-                value={profile?.role === 'admin' ? 'Administrador' : profile?.role === 'barber' ? 'Barbero' : 'Cliente'}
+                value={
+                  profile?.role === 'admin'
+                    ? 'Administrador'
+                    : profile?.role === 'owner'
+                      ? 'Propietario'
+                      : profile?.role === 'barber'
+                        ? 'Barbero'
+                        : 'Cliente'
+                }
                 disabled
                 className="bg-muted"
               />

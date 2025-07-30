@@ -1,19 +1,20 @@
-import { useState } from "react";
-import { ServiceSelection } from "./ServiceSelection";
-import { BarberSelection } from "./BarberSelection";
-import { DateTimeSelection } from "./DateTimeSelection";
-import { CustomerForm } from "./CustomerForm";
-import { BookingSummary } from "./BookingSummary";
-import { Card } from "@/components/ui/card";
-import { Barber, Service, TimeSlot } from "@/types";
-import { useToast } from "@/hooks/use-toast";
-import { ErrorBoundary } from "@/components/errors";
-import { ErrorMessage } from "@/components/errors";
-import { appointmentService } from "@/services/appointments.service";
-import { customerService } from "@/services/customers.service";
-import { format, set } from "date-fns";
+// // // // // import { useState } from "react";
+// // // // // import { ServiceSelection } from "./ServiceSelection";
+// // // // // import { BarberSelection } from "./BarberSelection";
+// // // // // import { DateTimeSelection } from "./DateTimeSelection";
+// // // // // import { CustomerForm } from "./CustomerForm";
+// // // // // import { BookingSummary } from "./BookingSummary";
+// // // // // import { Card } from "@/components/ui/card";
+// // // // // import { Barber, Service, TimeSlot } from "@/types";
+// // // // // import { useToast } from "@/hooks/use-toast";
+// // // // // import { ErrorBoundary } from "@/components/errors";
+// // // // // import { ErrorMessage } from "@/components/errors";
+// // // // // import { appointmentService } from "@/services/appointments.service";
+// // // // // import { customerService } from "@/services/customers.service";
+// // // // // import { availabilityService } from "@/services/availability.service";
+// // // // // import { format, set } from "date-fns";
 
-const STEPS = {
+const _STEPS = {
   SERVICE: 1,
   BARBER: 2,
   DATETIME: 3,
@@ -30,13 +31,13 @@ interface BookingFlowProps {
   onDateSelect?: (date: Date | null) => void;
 }
 
-export function BookingFlow({ 
-  services, 
-  barbers, 
+export function BookingFlow({
+  services,
+  barbers,
   availableSlots,
   onServiceSelect,
   onBarberSelect,
-  onDateSelect
+  onDateSelect,
 }: BookingFlowProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(STEPS.SERVICE);
@@ -51,84 +52,113 @@ export function BookingFlow({
     notes?: string;
   }>();
 
-  const handleServiceNext = () => {
+  const _handleServiceNext = () => {
     if (selectedService) {
       setCurrentStep(STEPS.BARBER);
     }
   };
 
-  const handleBarberNext = () => {
+  const _handleBarberNext = () => {
     if (selectedBarber) {
       setCurrentStep(STEPS.DATETIME);
     }
   };
 
-  const handleDateTimeNext = () => {
+  const _handleDateTimeNext = () => {
     if (selectedDate && selectedTime) {
       setCurrentStep(STEPS.CUSTOMER);
     }
   };
 
-  const handleCustomerSubmit = async (data: typeof customerData) => {
+  const _handleCustomerSubmit = async (data: typeof customerData) => {
     setCustomerData(data);
-    
+
     if (!selectedService || !selectedBarber || !selectedDate || !selectedTime) {
       toast({
-        title: "Error",
-        description: "Por favor, completa todos los pasos de la reserva",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Por favor, completa todos los pasos de la reserva',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!selectedBarber.barbershop_id) {
       toast({
-        title: "Error",
-        description: "No se pudo identificar la barbería",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudo identificar la barbería',
+        variant: 'destructive',
       });
       return;
     }
 
     try {
-      // First, create or get the customer
-      const customer = await customerService.createCustomer({
-        full_name: data.name,
-        phone: data.phone,
-        email: data.email
-      });
-
       // Construct the appointment date and time
       const [hours, minutes] = selectedTime.split(':').map(Number);
-      const appointmentDate = set(selectedDate, { hours, minutes, seconds: 0, milliseconds: 0 });
+      const _appointmentDate = set(selectedDate, {
+        hours,
+        minutes,
+        seconds: 0,
+        milliseconds: 0,
+      });
+      const _endTime = new Date(appointmentDate);
+      endTime.setMinutes(endTime.getMinutes() + selectedService.duration);
+
+      // Double-check availability before creating appointment
+      const { available, reason } = await availabilityService.isSlotAvailable(
+        selectedBarber.id,
+        selectedBarber.barbershop_id,
+        selectedDate.toISOString().split('T')[0],
+        selectedTime + ':00',
+        endTime.toTimeString().split(' ')[0]
+      );
+
+      if (!available) {
+        toast({
+          title: 'Horario no disponible',
+          description:
+            reason || 'El horario seleccionado ya no está disponible',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // First, create or get the customer
+      const _customer = await customerService.createCustomer({
+        full_name: data.name,
+        phone: data.phone,
+        email: data.email,
+      });
 
       // Create the appointment using the createAppointment method
-      const appointment = await appointmentService.createAppointment({
+      const _appointment = await appointmentService.createAppointment({
         barbershop_id: selectedBarber.barbershop_id,
         barber_id: selectedBarber.id,
-        client_id: customer.id,
+        customer_id: customer.id,
         service_id: selectedService.id,
         start_time: appointmentDate,
-        notes: data.notes
+        notes: data.notes,
       });
 
       toast({
-        title: "Reserva confirmada",
-        description: "Te hemos enviado los detalles por SMS",
+        title: 'Reserva confirmada',
+        description: 'Te hemos enviado los detalles por SMS',
       });
-      
+
       setCurrentStep(STEPS.SUMMARY);
     } catch (error) {
       console.error('Error creating appointment:', error);
       toast({
-        title: "Error al crear la reserva",
-        description: error instanceof Error ? error.message : "Por favor, intenta nuevamente",
-        variant: "destructive",
+        title: 'Error al crear la reserva',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Por favor, intenta nuevamente',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleNewBooking = () => {
+  const _handleNewBooking = () => {
     // Reset all state
     setCurrentStep(STEPS.SERVICE);
     setSelectedService(undefined);
@@ -138,12 +168,12 @@ export function BookingFlow({
     setCustomerData(undefined);
   };
 
-  const goBack = () => {
+  const _goBack = () => {
     setCurrentStep(currentStep - 1);
   };
 
   // Progress indicator
-  const progressPercentage = (currentStep / Object.keys(STEPS).length) * 100;
+  const _progressPercentage = (currentStep / Object.keys(STEPS).length) * 100;
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -154,7 +184,7 @@ export function BookingFlow({
             <span>{Math.round(progressPercentage)}% completado</span>
           </div>
           <div className="w-full bg-secondary rounded-full h-2">
-            <div 
+            <div
               className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
@@ -202,6 +232,8 @@ export function BookingFlow({
             <BarberSelection
               barbers={barbers}
               selectedBarber={selectedBarber}
+              selectedService={selectedService}
+              selectedDate={selectedDate}
               onSelectBarber={(barber) => {
                 setSelectedBarber(barber);
                 onBarberSelect?.(barber || null);
@@ -228,6 +260,8 @@ export function BookingFlow({
               availableSlots={availableSlots}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
+              selectedService={selectedService}
+              selectedBarber={selectedBarber}
               onSelectDate={(date) => {
                 setSelectedDate(date);
                 onDateSelect?.(date || null);
@@ -251,38 +285,40 @@ export function BookingFlow({
               />
             )}
           >
-            <CustomerForm
-              onSubmit={handleCustomerSubmit}
-              onBack={goBack}
-            />
+            <CustomerForm onSubmit={handleCustomerSubmit} onBack={goBack} />
           </ErrorBoundary>
         )}
 
-        {currentStep === STEPS.SUMMARY && customerData && selectedService && selectedBarber && selectedDate && selectedTime && (
-          <ErrorBoundary
-            level="component"
-            fallback={(props) => (
-              <ErrorMessage
-                title="Error al mostrar el resumen"
-                message="No pudimos mostrar el resumen de tu reserva."
-                severity="error"
-                onRetry={props.resetError}
+        {currentStep === STEPS.SUMMARY &&
+          customerData &&
+          selectedService &&
+          selectedBarber &&
+          selectedDate &&
+          selectedTime && (
+            <ErrorBoundary
+              level="component"
+              fallback={(props) => (
+                <ErrorMessage
+                  title="Error al mostrar el resumen"
+                  message="No pudimos mostrar el resumen de tu reserva."
+                  severity="error"
+                  onRetry={props.resetError}
+                />
+              )}
+            >
+              <BookingSummary
+                service={selectedService}
+                barber={selectedBarber}
+                date={selectedDate}
+                time={selectedTime}
+                customerName={customerData.name}
+                customerPhone={customerData.phone}
+                customerEmail={customerData.email}
+                notes={customerData.notes}
+                onNewBooking={handleNewBooking}
               />
-            )}
-          >
-            <BookingSummary
-              service={selectedService}
-              barber={selectedBarber}
-              date={selectedDate}
-              time={selectedTime}
-              customerName={customerData.name}
-              customerPhone={customerData.phone}
-              customerEmail={customerData.email}
-              notes={customerData.notes}
-              onNewBooking={handleNewBooking}
-            />
-          </ErrorBoundary>
-        )}
+            </ErrorBoundary>
+          )}
       </Card>
     </div>
   );

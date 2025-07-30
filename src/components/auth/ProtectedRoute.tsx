@@ -1,15 +1,18 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Skeleton } from '@/components/ui/skeleton';
+// // // // // import { Navigate, useLocation } from 'react-router-dom';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'admin' | 'barber' | 'customer';
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  requiredRole,
+}: ProtectedRouteProps) {
   const { user, loading } = useAuth();
-  const location = useLocation();
+  const _location = useLocation();
 
   if (loading) {
     return (

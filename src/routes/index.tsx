@@ -1,30 +1,31 @@
-import { createBrowserRouter } from 'react-router-dom';
-import { RootLayout } from '@/layouts/RootLayout';
-import { AuthLayout } from '@/layouts/AuthLayout';
-import { ProtectedLayout } from '@/layouts/ProtectedLayout';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { RouteErrorBoundary } from '@/components/errors';
+// // // // // import { createBrowserRouter } from 'react-router-dom';
+// // // // // import { RootLayout } from '@/layouts/RootLayout';
+// // // // // import { AuthLayout } from '@/layouts/AuthLayout';
+// // // // // import { ProtectedLayout } from '@/layouts/ProtectedLayout';
+// // // // // import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+// // // // // import { RouteErrorBoundary } from '@/components/errors';
 
 // Pages
-import { HomePage } from '@/pages/HomePage';
-import { BookingPage } from '@/pages/BookingPage';
-import { LoginPage } from '@/pages/LoginPage';
-import { RegisterPage } from '@/pages/RegisterPage';
-import { AdminDashboard } from '@/pages/admin/Dashboard';
-import { AdminAppointments } from '@/pages/admin/Appointments';
-import { BarberDashboard } from '@/pages/barber/Dashboard';
-import { BarberSchedule } from '@/pages/barber/Schedule';
-import { BarberOnboarding } from '@/pages/barber/Onboarding';
-import { OwnerDashboard } from '@/pages/owner/Dashboard';
-import { OwnerSettings } from '@/pages/owner/Settings';
-import { CreateBarbershop } from '@/pages/owner/CreateBarbershop';
-import { Services } from '@/pages/owner/Services';
-import { Barbers } from '@/pages/owner/Barbers';
-import { ProfilePage } from '@/pages/ProfilePage';
-import { NotFoundPage } from '@/pages/NotFoundPage';
-import { ErrorPage } from '@/pages/ErrorPage';
+// // // // // import { HomePage } from '@/pages/HomePage';
+// // // // // import { BookingPage } from '@/pages/BookingPage';
+// // // // // import { LoginPage } from '@/pages/LoginPage';
+// // // // // import { RegisterPage } from '@/pages/RegisterPage';
+// // // // // import { AdminDashboard } from '@/pages/admin/Dashboard';
+// // // // // import { AdminAppointments } from '@/pages/admin/Appointments';
+// // // // // import { BarberDashboard } from '@/pages/barber/Dashboard';
+// // // // // import { BarberSchedule } from '@/pages/barber/Schedule';
+// // // // // import { BarberOnboarding } from '@/pages/barber/Onboarding';
+// // // // // import { OwnerDashboard } from '@/pages/owner/Dashboard';
+// // // // // import { OwnerSettings } from '@/pages/owner/Settings';
+// // // // // import { CreateBarbershop } from '@/pages/owner/CreateBarbershop';
+// // // // // import { Services } from '@/pages/owner/Services';
+// // // // // import { Barbers } from '@/pages/owner/Barbers';
+// // // // // import { OwnerHours } from '@/pages/owner/Hours';
+// // // // // import { ProfilePage } from '@/pages/ProfilePage';
+// // // // // import { NotFoundPage } from '@/pages/NotFoundPage';
+// // // // // import { ErrorPage } from '@/pages/ErrorPage';
 
-export const router = createBrowserRouter([
+export const _router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
@@ -129,6 +130,10 @@ export const router = createBrowserRouter([
       {
         path: 'barbers',
         element: <Barbers />,
+      },
+      {
+        path: 'hours',
+        element: <OwnerHours />,
       },
     ],
   },

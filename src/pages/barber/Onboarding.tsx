@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { InvitationCodeForm } from '@/components/barber/InvitationCodeForm';
-import { BarberProfileSetup } from '@/components/barber/BarberProfileSetup';
-import { LoginForm } from '@/components/auth/LoginForm';
-import { RegisterForm } from '@/components/auth/RegisterForm';
-import { Scissors, CheckCircle, AlertCircle, UserPlus, LogIn } from 'lucide-react';
+import {useEffect} from 'react';
+// // // // // import { useNavigate, useSearchParams } from 'react-router-dom';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// // // // // import { InvitationCodeForm } from '@/components/barber/InvitationCodeForm';
+// // // // // import { BarberProfileSetup } from '@/components/barber/BarberProfileSetup';
+// // // // // import { LoginForm } from '@/components/auth/LoginForm';
+// // // // // import { RegisterForm } from '@/components/auth/RegisterForm';
+// // // // // import { Scissors, CheckCircle, AlertCircle, UserPlus, LogIn } from 'lucide-react';
 
 type OnboardingStep = 'auth' | 'code' | 'profile' | 'complete';
 
 export function BarberOnboarding() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isLoading } = useAuth();
   const [step, setStep] = useState<OnboardingStep>('auth');
@@ -24,7 +24,7 @@ export function BarberOnboarding() {
 
   // Get invitation code from URL if present
   useEffect(() => {
-    const codeFromUrl = searchParams.get('code');
+    const _codeFromUrl = searchParams.get('code');
     if (codeFromUrl) {
       setInvitationCode(codeFromUrl);
     }
@@ -49,18 +49,18 @@ export function BarberOnboarding() {
     }
   }, [user, isLoading, navigate]);
 
-  const handleAuthSuccess = () => {
+  const _handleAuthSuccess = () => {
     // After successful auth, move to code validation
     setStep('code');
   };
 
-  const handleCodeSuccess = (barbershopId: string) => {
+  const _handleCodeSuccess = (barbershopId: string) => {
     // After successful code validation, move to profile setup
     setBarbershopId(barbershopId);
     setStep('profile');
   };
 
-  const handleProfileComplete = () => {
+  const _handleProfileComplete = () => {
     // Profile setup complete
     setStep('complete');
     // Redirect to barber dashboard after a short delay
@@ -96,15 +96,23 @@ export function BarberOnboarding() {
         {/* Progress indicator */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center space-x-2">
-            <div className={`h-2 w-16 rounded-full ${
-              step !== 'auth' ? 'bg-primary' : 'bg-muted'
-            }`} />
-            <div className={`h-2 w-16 rounded-full ${
-              ['profile', 'complete'].includes(step) ? 'bg-primary' : 'bg-muted'
-            }`} />
-            <div className={`h-2 w-16 rounded-full ${
-              step === 'complete' ? 'bg-primary' : 'bg-muted'
-            }`} />
+            <div
+              className={`h-2 w-16 rounded-full ${
+                step !== 'auth' ? 'bg-primary' : 'bg-muted'
+              }`}
+            />
+            <div
+              className={`h-2 w-16 rounded-full ${
+                ['profile', 'complete'].includes(step)
+                  ? 'bg-primary'
+                  : 'bg-muted'
+              }`}
+            />
+            <div
+              className={`h-2 w-16 rounded-full ${
+                step === 'complete' ? 'bg-primary' : 'bg-muted'
+              }`}
+            />
           </div>
         </div>
 
@@ -137,13 +145,10 @@ export function BarberOnboarding() {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="login">
-                  <LoginForm 
-                    onSuccess={handleAuthSuccess}
-                    redirectTo={false}
-                  />
+                  <LoginForm onSuccess={handleAuthSuccess} redirectTo={false} />
                 </TabsContent>
                 <TabsContent value="register">
-                  <RegisterForm 
+                  <RegisterForm
                     onSuccess={handleAuthSuccess}
                     redirectTo={false}
                   />
@@ -175,7 +180,9 @@ export function BarberOnboarding() {
               <div className="text-center space-y-4">
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
                 <div>
-                  <h3 className="text-lg font-semibold">¡Registro completado!</h3>
+                  <h3 className="text-lg font-semibold">
+                    ¡Registro completado!
+                  </h3>
                   <p className="text-muted-foreground mt-2">
                     Tu perfil de barbero ha sido creado exitosamente.
                     Redirigiendo a tu panel de control...

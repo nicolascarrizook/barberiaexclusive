@@ -1,16 +1,16 @@
-import '@testing-library/jest-dom'
-import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import '@testing-library/jest-dom';
+// // // // // import { cleanup } from '@testing-library/react'
+// // // // // import { afterEach } from 'vitest'
 
 // Cleanup después de cada test
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 // Mock de window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -20,27 +20,27 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});
 
 // Mock de ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}))
+}));
 
 // Mock de IntersectionObserver
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
-}))
+}));
 
 // Mock de scrollTo
-window.scrollTo = vi.fn()
+window.scrollTo = vi.fn();
 
 // Mock de HTMLElement.prototype.scrollIntoView
-HTMLElement.prototype.scrollIntoView = vi.fn()
+HTMLElement.prototype.scrollIntoView = vi.fn();
 
 // Mock básico de Supabase para tests
 vi.mock('@/lib/supabase', () => ({
@@ -69,4 +69,4 @@ vi.mock('@/lib/supabase', () => ({
       delete: vi.fn().mockResolvedValue({ data: null, error: null }),
     }),
   },
-}))
+}));

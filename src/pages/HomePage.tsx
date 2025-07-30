@@ -1,11 +1,12 @@
-import { Link, Navigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Scissors, Clock, Calendar, Star } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+// // // // // import { Link, Navigate } from 'react-router-dom';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Scissors, Clock, Calendar, Star } from 'lucide-react';
+// // // // // import { useAuth } from '@/hooks/useAuth';
 
 export function HomePage() {
-  const { user, isAuthenticated, isAdmin, isBarber, isOwner, loading } = useAuth();
+  const { user, isAuthenticated, isAdmin, isBarber, isOwner, loading } =
+    useAuth();
 
   // Si está cargando, mostrar un skeleton o spinner
   if (loading) {
@@ -61,9 +62,7 @@ export function HomePage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/profile">
-                Ver mis citas
-              </Link>
+              <Link to="/profile">Ver mis citas</Link>
             </Button>
           </div>
         </section>

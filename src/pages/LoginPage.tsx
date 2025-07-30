@@ -1,4 +1,4 @@
-import { LoginForm } from '@/components/auth/LoginForm';
+// // // // // import { LoginForm } from '@/components/auth/LoginForm';
 
 export function LoginPage() {
   return (
@@ -9,7 +9,7 @@ export function LoginPage() {
           Ingresa tus credenciales para acceder a tu cuenta
         </p>
       </div>
-      
+
       <LoginForm />
     </div>
   );

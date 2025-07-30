@@ -1,22 +1,22 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { barbershopService } from '@/services/barbershops.service';
-import { ArrowLeft, Save, Store, Clock, Calendar, DollarSign } from 'lucide-react';
+// // // // // import { useState } from 'react';
+// // // // // import { useNavigate, Link } from 'react-router-dom';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { z } from 'zod';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Label } from '@/components/ui/label';
+// // // // // import { Textarea } from '@/components/ui/textarea';
+// // // // // import { Switch } from '@/components/ui/switch';
+// // // // // import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { barbershopService } from '@/services/barbershops.service';
+// // // // // import { ArrowLeft, Save, Store, Clock, Calendar, DollarSign } from 'lucide-react';
 
 // Schema de validación
-const createBarbershopSchema = z.object({
+const _createBarbershopSchema = z.object({
   // Información básica
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
@@ -26,14 +26,14 @@ const createBarbershopSchema = z.object({
   zip_code: z.string().optional(),
   phone: z.string().min(8, 'El teléfono debe tener al menos 8 caracteres'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
-  
+
   // Configuración inicial
   default_appointment_duration: z.number().min(15).max(240),
   buffer_time_between_appointments: z.number().min(0).max(60),
   max_advance_booking_days: z.number().min(1).max(365),
   min_advance_booking_hours: z.number().min(0).max(72),
   cancellation_hours: z.number().min(0).max(72),
-  
+
   // Configuración adicional
   auto_confirm_appointments: z.boolean(),
   allow_walk_ins: z.boolean(),
@@ -44,12 +44,12 @@ const createBarbershopSchema = z.object({
 type CreateBarbershopFormData = z.infer<typeof createBarbershopSchema>;
 
 export function CreateBarbershop() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<CreateBarbershopFormData>({
+  const _form = useForm<CreateBarbershopFormData>({
     resolver: zodResolver(createBarbershopSchema),
     defaultValues: {
       name: '',
@@ -72,9 +72,9 @@ export function CreateBarbershop() {
     },
   });
 
-  const watchRequireDeposit = form.watch('require_deposit');
+  const _watchRequireDeposit = form.watch('require_deposit');
 
-  const generateSlug = (name: string): string => {
+  const _generateSlug = (name: string): string => {
     return name
       .toLowerCase()
       .trim()
@@ -83,7 +83,7 @@ export function CreateBarbershop() {
       .replace(/-+/g, '-');
   };
 
-  const onSubmit = async (data: CreateBarbershopFormData) => {
+  const _onSubmit = async (data: CreateBarbershopFormData) => {
     if (!user?.id) {
       toast({
         title: 'Error',
@@ -94,12 +94,12 @@ export function CreateBarbershop() {
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      const slug = generateSlug(data.name);
-      
+      const _slug = generateSlug(data.name);
+
       // Preparar los datos para la creación
-      const barbershopData = {
+      const _barbershopData = {
         owner_id: user.id,
         name: data.name,
         slug,
@@ -114,14 +114,17 @@ export function CreateBarbershop() {
         is_active: true,
         settings: {
           default_appointment_duration: data.default_appointment_duration,
-          buffer_time_between_appointments: data.buffer_time_between_appointments,
+          buffer_time_between_appointments:
+            data.buffer_time_between_appointments,
           max_advance_booking_days: data.max_advance_booking_days,
           min_advance_booking_hours: data.min_advance_booking_hours,
           cancellation_hours: data.cancellation_hours,
           auto_confirm_appointments: data.auto_confirm_appointments,
           allow_walk_ins: data.allow_walk_ins,
           require_deposit: data.require_deposit,
-          deposit_percentage: data.require_deposit ? data.deposit_percentage : null,
+          deposit_percentage: data.require_deposit
+            ? data.deposit_percentage
+            : null,
         },
       };
 
@@ -138,7 +141,8 @@ export function CreateBarbershop() {
       console.error('Error creating barbershop:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo crear la barbería. Por favor, intenta nuevamente.',
+        description:
+          'No se pudo crear la barbería. Por favor, intenta nuevamente.',
         variant: 'destructive',
       });
     } finally {
@@ -192,7 +196,7 @@ export function CreateBarbershop() {
                   <FormItem>
                     <FormLabel>Descripción (opcional)</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Describe tu barbería y los servicios que ofreces"
                         rows={3}
                         {...field}
@@ -211,7 +215,11 @@ export function CreateBarbershop() {
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input type="tel" placeholder="Ej: 1122334455" {...field} />
+                        <Input
+                          type="tel"
+                          placeholder="Ej: 1122334455"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -225,7 +233,11 @@ export function CreateBarbershop() {
                     <FormItem>
                       <FormLabel>Email (opcional)</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="contacto@barberia.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="contacto@barberia.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -324,10 +336,12 @@ export function CreateBarbershop() {
                     <FormItem>
                       <FormLabel>Duración por defecto (minutos)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormDescription>
@@ -345,10 +359,12 @@ export function CreateBarbershop() {
                     <FormItem>
                       <FormLabel>Tiempo entre citas (minutos)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormDescription>
@@ -368,10 +384,12 @@ export function CreateBarbershop() {
                     <FormItem>
                       <FormLabel>Anticipación mínima (horas)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormDescription>
@@ -389,10 +407,12 @@ export function CreateBarbershop() {
                     <FormItem>
                       <FormLabel>Anticipación máxima (días)</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormDescription>
@@ -411,10 +431,12 @@ export function CreateBarbershop() {
                   <FormItem>
                     <FormLabel>Horas para cancelación</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
                       />
                     </FormControl>
                     <FormDescription>
@@ -511,12 +533,14 @@ export function CreateBarbershop() {
                       <FormLabel>Porcentaje de depósito</FormLabel>
                       <FormControl>
                         <div className="flex items-center gap-2">
-                          <Input 
-                            type="number" 
+                          <Input
+                            type="number"
                             min="0"
                             max="100"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value))
+                            }
                           />
                           <span className="text-muted-foreground">%</span>
                         </div>

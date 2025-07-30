@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
+import {useEffect} from 'react';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { z } from 'zod';
+// // // // // import { useMutation, useQueryClient } from '@tanstack/react-query';
+// // // // // import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,18 +11,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Label } from '@/components/ui/label';
+// // // // // import { Textarea } from '@/components/ui/textarea';
+// // // // // import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
+// // // // // import {
   Form,
   FormControl,
   FormDescription,
@@ -31,11 +31,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { servicesService } from '@/services/services.service';
-import { Save, Loader2 } from 'lucide-react';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { servicesService } from '@/services/services.service';
+// // // // // import { Save, Loader2 } from 'lucide-react';
 
-const serviceSchema = z.object({
+const _serviceSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
   category: z.enum(['Corte', 'Barba', 'Tratamientos'], {
@@ -67,7 +67,7 @@ interface ServiceFormDialogProps {
   barbershopId?: string;
 }
 
-const categories = [
+const _categories = [
   { value: 'Corte', label: 'Corte' },
   { value: 'Barba', label: 'Barba' },
   { value: 'Tratamientos', label: 'Tratamientos' },
@@ -80,9 +80,9 @@ export function ServiceFormDialog({
   barbershopId 
 }: ServiceFormDialogProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
-  const form = useForm<ServiceFormData>({
+  const _form = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: '',
@@ -117,7 +117,7 @@ export function ServiceFormDialog({
     }
   }, [service, form, open]);
 
-  const createMutation = useMutation({
+  const _createMutation = useMutation({
     mutationFn: async (data: ServiceFormData) => {
       if (!barbershopId) throw new Error('No barbershop ID');
       
@@ -151,7 +151,7 @@ export function ServiceFormDialog({
     },
   });
 
-  const updateMutation = useMutation({
+  const _updateMutation = useMutation({
     mutationFn: async (data: ServiceFormData) => {
       if (!service?.id) throw new Error('No service ID');
       
@@ -182,7 +182,7 @@ export function ServiceFormDialog({
     },
   });
 
-  const onSubmit = async (data: ServiceFormData) => {
+  const _onSubmit = async (data: ServiceFormData) => {
     if (service) {
       updateMutation.mutate(data);
     } else {
@@ -190,7 +190,7 @@ export function ServiceFormDialog({
     }
   };
 
-  const isLoading = createMutation.isPending || updateMutation.isPending;
+  const _isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

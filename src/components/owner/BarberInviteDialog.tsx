@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
+// // // // // import { useState } from 'react';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { z } from 'zod';
+// // // // // import { useMutation, useQueryClient } from '@tanstack/react-query';
+// // // // // import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,10 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Textarea } from '@/components/ui/textarea';
+// // // // // import {
   Form,
   FormControl,
   FormDescription,
@@ -23,12 +23,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { barberService } from '@/services/barbers.service';
-import { Mail, Loader2, UserPlus } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { barberService } from '@/services/barbers.service';
+// // // // // import { Mail, Loader2, UserPlus } from 'lucide-react';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const inviteSchema = z.object({
+const _inviteSchema = z.object({
   email: z.string().email('Email inválido'),
   display_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   message: z.string().optional(),
@@ -48,10 +48,10 @@ export function BarberInviteDialog({
   barbershopId 
 }: BarberInviteDialogProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const [inviteSent, setInviteSent] = useState(false);
 
-  const form = useForm<InviteFormData>({
+  const _form = useForm<InviteFormData>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       email: '',
@@ -60,7 +60,7 @@ export function BarberInviteDialog({
     },
   });
 
-  const inviteMutation = useMutation({
+  const _inviteMutation = useMutation({
     mutationFn: async (data: InviteFormData) => {
       if (!barbershopId) throw new Error('No barbershop ID');
       
@@ -98,11 +98,11 @@ export function BarberInviteDialog({
     },
   });
 
-  const onSubmit = async (data: InviteFormData) => {
+  const _onSubmit = async (data: InviteFormData) => {
     inviteMutation.mutate(data);
   };
 
-  const handleClose = (open: boolean) => {
+  const _handleClose = (open: boolean) => {
     if (!inviteMutation.isPending) {
       setInviteSent(false);
       form.reset();

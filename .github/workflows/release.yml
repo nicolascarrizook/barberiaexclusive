@@ -1,0 +1,143 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          configuration: ".github/changelog-config.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+
+  build-and-publish:
+    name: Build and Publish
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+          - platform: linux/arm64
+            arch: arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository }}:latest-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/barbershop-booking:${{ needs.release.outputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/barbershop-booking:latest-${{ matrix.arch }}
+          build-args: |
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            BUILD_VERSION=${{ needs.release.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  create-manifest:
+    name: Create Multi-arch Manifest
+    needs: [release, build-and-publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }} \
+            ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}-amd64 \
+            ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}-arm64
+          
+          docker manifest create ghcr.io/${{ github.repository }}:latest \
+            ghcr.io/${{ github.repository }}:latest-amd64 \
+            ghcr.io/${{ github.repository }}:latest-arm64
+          
+          docker manifest push ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}
+          docker manifest push ghcr.io/${{ github.repository }}:latest
+
+  deploy:
+    name: Deploy to Production
+    needs: [release, create-manifest]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://barbershop.example.com
+    steps:
+      - name: Deploy to Kubernetes
+        run: |
+          # Add your Kubernetes deployment commands here
+          echo "Deploying version ${{ needs.release.outputs.version }} to production"
+          
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'Production release ${{ needs.release.outputs.version }} deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

@@ -1,9 +1,9 @@
-import { AlertCircle, Home, RefreshCw, Mail, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+// // // // // import { AlertCircle, Home, RefreshCw, Mail, Phone } from 'lucide-react';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { Separator } from '@/components/ui/separator';
+// // // // // import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface ErrorPageProps {
   title?: string;
@@ -11,19 +11,19 @@ interface ErrorPageProps {
   showContact?: boolean;
 }
 
-export function ErrorPage({ 
-  title = 'Ha ocurrido un error', 
+export function ErrorPage({
+  title = 'Ha ocurrido un error',
   message = 'Lo sentimos, algo salió mal. Por favor, intenta de nuevo más tarde.',
-  showContact = true 
+  showContact = true,
 }: ErrorPageProps) {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
-  // Get error details from URL params if available
-  const errorCode = searchParams.get('code');
-  const errorType = searchParams.get('type');
 
-  const getErrorMessage = () => {
+  // Get error details from URL params if available
+  const _errorCode = searchParams.get('code');
+  const _errorType = searchParams.get('type');
+
+  const _getErrorMessage = () => {
     if (errorCode) {
       switch (errorCode) {
         case '500':
@@ -41,11 +41,11 @@ export function ErrorPage({
     return message;
   };
 
-  const handleReload = () => {
+  const _handleReload = () => {
     window.location.reload();
   };
 
-  const handleGoHome = () => {
+  const _handleGoHome = () => {
     navigate('/');
   };
 
@@ -59,7 +59,9 @@ export function ErrorPage({
           <div className="space-y-2">
             <CardTitle className="text-2xl">{title}</CardTitle>
             {errorCode && (
-              <p className="text-4xl font-bold text-muted-foreground">{errorCode}</p>
+              <p className="text-4xl font-bold text-muted-foreground">
+                {errorCode}
+              </p>
             )}
           </div>
         </CardHeader>
@@ -72,7 +74,8 @@ export function ErrorPage({
 
           <div className="space-y-4 text-center text-sm text-muted-foreground">
             <p>
-              Si el problema persiste, por favor intenta las siguientes opciones:
+              Si el problema persiste, por favor intenta las siguientes
+              opciones:
             </p>
             <ul className="space-y-2 text-left max-w-sm mx-auto">
               <li className="flex items-start gap-2">
@@ -98,13 +101,23 @@ export function ErrorPage({
             <>
               <Separator />
               <div className="space-y-3">
-                <p className="text-sm font-medium text-center">¿Necesitas ayuda?</p>
+                <p className="text-sm font-medium text-center">
+                  ¿Necesitas ayuda?
+                </p>
                 <div className="flex flex-col gap-2">
-                  <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                  >
                     <Mail className="mr-2 h-4 w-4" />
                     soporte@barbershop.com
                   </Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                  >
                     <Phone className="mr-2 h-4 w-4" />
                     +1 (555) 123-4567
                   </Button>

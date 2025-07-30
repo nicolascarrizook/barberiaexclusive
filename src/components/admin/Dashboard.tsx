@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Appointment } from "@/types";
-import { Calendar, Clock, DollarSign, TrendingUp, Users, Scissors } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// // // // // import { Appointment } from "@/types";
+// // // // // import { Calendar, Clock, DollarSign, TrendingUp, Users, Scissors } from "lucide-react";
+// // // // // import { format } from "date-fns";
+// // // // // import { es } from "date-fns/locale";
 
 interface DashboardProps {
   appointments: Appointment[];
@@ -10,35 +10,43 @@ interface DashboardProps {
 
 export function Dashboard({ appointments }: DashboardProps) {
   // Calculate statistics
-  const today = new Date();
+  const _today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const todayAppointments = appointments.filter(apt => {
-    const aptDate = new Date(apt.date);
+  const _todayAppointments = appointments.filter((apt) => {
+    const _aptDate = new Date(apt.date);
     aptDate.setHours(0, 0, 0, 0);
     return aptDate.getTime() === today.getTime();
   });
 
-  const confirmedToday = todayAppointments.filter(apt => apt.status === 'confirmed').length;
-  const pendingToday = todayAppointments.filter(apt => apt.status === 'pending').length;
-  const completedToday = todayAppointments.filter(apt => apt.status === 'completed').length;
+  const _confirmedToday = todayAppointments.filter(
+    (apt) => apt.status === 'confirmed'
+  ).length;
+  const _pendingToday = todayAppointments.filter(
+    (apt) => apt.status === 'pending'
+  ).length;
+  const _completedToday = todayAppointments.filter(
+    (apt) => apt.status === 'completed'
+  ).length;
 
-  const todayRevenue = todayAppointments
-    .filter(apt => apt.status === 'completed')
+  const _todayRevenue = todayAppointments
+    .filter((apt) => apt.status === 'completed')
     .reduce((sum, apt) => sum + apt.price, 0);
 
-  const weekRevenue = appointments
-    .filter(apt => {
-      const aptDate = new Date(apt.date);
-      const weekAgo = new Date(today);
+  const _weekRevenue = appointments
+    .filter((apt) => {
+      const _aptDate = new Date(apt.date);
+      const _weekAgo = new Date(today);
       weekAgo.setDate(weekAgo.getDate() - 7);
-      return apt.status === 'completed' && aptDate >= weekAgo && aptDate <= today;
+      return (
+        apt.status === 'completed' && aptDate >= weekAgo && aptDate <= today
+      );
     })
     .reduce((sum, apt) => sum + apt.price, 0);
 
-  const nextAppointment = appointments
-    .filter(apt => {
-      const aptDate = new Date(apt.date);
+  const _nextAppointment = appointments
+    .filter((apt) => {
+      const _aptDate = new Date(apt.date);
       return apt.status === 'confirmed' && aptDate >= today;
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
@@ -55,9 +63,7 @@ export function Dashboard({ appointments }: DashboardProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Citas de hoy
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Citas de hoy</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -92,17 +98,13 @@ export function Dashboard({ appointments }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${weekRevenue}</div>
-            <p className="text-xs text-muted-foreground">
-              Últimos 7 días
-            </p>
+            <p className="text-xs text-muted-foreground">Últimos 7 días</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Próxima cita
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Próxima cita</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -139,7 +141,10 @@ export function Dashboard({ appointments }: DashboardProps) {
           <CardContent>
             <div className="space-y-4">
               {getTopBarbers(appointments).map((barber, index) => (
-                <div key={barber.name} className="flex items-center justify-between">
+                <div
+                  key={barber.name}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
                       {index + 1}
@@ -151,9 +156,7 @@ export function Dashboard({ appointments }: DashboardProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm font-medium">
-                    ${barber.revenue}
-                  </div>
+                  <div className="text-sm font-medium">${barber.revenue}</div>
                 </div>
               ))}
             </div>
@@ -173,7 +176,10 @@ export function Dashboard({ appointments }: DashboardProps) {
           <CardContent>
             <div className="space-y-4">
               {getTopServices(appointments).map((service, index) => (
-                <div key={service.name} className="flex items-center justify-between">
+                <div
+                  key={service.name}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/50 text-secondary-foreground font-semibold">
                       {index + 1}
@@ -185,9 +191,7 @@ export function Dashboard({ appointments }: DashboardProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm font-medium">
-                    ${service.revenue}
-                  </div>
+                  <div className="text-sm font-medium">${service.revenue}</div>
                 </div>
               ))}
             </div>
@@ -199,16 +203,19 @@ export function Dashboard({ appointments }: DashboardProps) {
 }
 
 function getTopBarbers(appointments: Appointment[]) {
-  const barberStats = appointments
-    .filter(apt => apt.status === 'completed')
-    .reduce((acc, apt) => {
-      if (!acc[apt.barberName]) {
-        acc[apt.barberName] = { appointments: 0, revenue: 0 };
-      }
-      acc[apt.barberName].appointments++;
-      acc[apt.barberName].revenue += apt.price;
-      return acc;
-    }, {} as Record<string, { appointments: number; revenue: number }>);
+  const _barberStats = appointments
+    .filter((apt) => apt.status === 'completed')
+    .reduce(
+      (acc, apt) => {
+        if (!acc[apt.barberName]) {
+          acc[apt.barberName] = { appointments: 0, revenue: 0 };
+        }
+        acc[apt.barberName].appointments++;
+        acc[apt.barberName].revenue += apt.price;
+        return acc;
+      },
+      {} as Record<string, { appointments: number; revenue: number }>
+    );
 
   return Object.entries(barberStats)
     .map(([name, stats]) => ({ name, ...stats }))
@@ -217,16 +224,19 @@ function getTopBarbers(appointments: Appointment[]) {
 }
 
 function getTopServices(appointments: Appointment[]) {
-  const serviceStats = appointments
-    .filter(apt => apt.status === 'completed')
-    .reduce((acc, apt) => {
-      if (!acc[apt.serviceName]) {
-        acc[apt.serviceName] = { count: 0, revenue: 0 };
-      }
-      acc[apt.serviceName].count++;
-      acc[apt.serviceName].revenue += apt.price;
-      return acc;
-    }, {} as Record<string, { count: number; revenue: number }>);
+  const _serviceStats = appointments
+    .filter((apt) => apt.status === 'completed')
+    .reduce(
+      (acc, apt) => {
+        if (!acc[apt.serviceName]) {
+          acc[apt.serviceName] = { count: 0, revenue: 0 };
+        }
+        acc[apt.serviceName].count++;
+        acc[apt.serviceName].revenue += apt.price;
+        return acc;
+      },
+      {} as Record<string, { count: number; revenue: number }>
+    );
 
   return Object.entries(serviceStats)
     .map(([name, stats]) => ({ name, ...stats }))

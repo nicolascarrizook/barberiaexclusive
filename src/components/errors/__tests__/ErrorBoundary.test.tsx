@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ErrorBoundary } from '../ErrorBoundary';
+// // // // // import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// // // // // import { render, screen, fireEvent } from '@testing-library/react';
+// // // // // import { ErrorBoundary } from '../ErrorBoundary';
 import React from 'react';
 
 // Mock error logger
@@ -14,7 +14,7 @@ vi.mock('@/utils/errorLogger', () => ({
 }));
 
 // Component that throws an error
-const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
+const _ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {
     throw new Error('Test error');
   }
@@ -22,7 +22,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 };
 
 // Component that throws an error in useEffect
-const ThrowErrorInEffect = () => {
+const _ThrowErrorInEffect = () => {
   React.useEffect(() => {
     throw new Error('Effect error');
   }, []);
@@ -31,7 +31,7 @@ const ThrowErrorInEffect = () => {
 
 describe('ErrorBoundary', () => {
   // Suppress console.error during tests
-  const originalError = console.error;
+  const _originalError = console.error;
   beforeEach(() => {
     console.error = vi.fn();
   });
@@ -64,7 +64,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders custom fallback component when provided', () => {
-    const CustomFallback = ({ error, resetError }: any) => (
+    const _CustomFallback = ({ error, resetError }: any) => (
       <div>
         <p>Custom error: {error.message}</p>
         <button onClick={resetError}>Custom reset</button>
@@ -82,7 +82,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('calls onError callback when error occurs', () => {
-    const onError = vi.fn();
+    const _onError = vi.fn();
 
     render(
       <ErrorBoundary onError={onError}>

@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
+// // // // // import { useState } from 'react';
+// // // // // import { useForm } from 'react-hook-form';
+// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+// // // // // import { z } from 'zod';
+// // // // // import { useMutation, useQueryClient } from '@tanstack/react-query';
+// // // // // import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,12 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import {
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Input } from '@/components/ui/input';
+// // // // // import { Textarea } from '@/components/ui/textarea';
+// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// // // // // import { Switch } from '@/components/ui/switch';
+// // // // // import {
   Form,
   FormControl,
   FormDescription,
@@ -25,19 +25,19 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { barberService } from '@/services/barbers.service';
-import { Mail, Loader2, UserPlus, QrCode, Copy, Check } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { barberService } from '@/services/barbers.service';
+// // // // // import { Mail, Loader2, UserPlus, QrCode, Copy, Check } from 'lucide-react';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
 // QR code generation will be implemented later
 
-const emailInviteSchema = z.object({
+const _emailInviteSchema = z.object({
   email: z.string().email('Email inválido'),
   display_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   message: z.string().optional(),
 });
 
-const manualBarberSchema = z.object({
+const _manualBarberSchema = z.object({
   display_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   bio: z.string().optional(),
   years_experience: z.number().min(0, 'Los años de experiencia no pueden ser negativos').optional(),
@@ -62,12 +62,12 @@ export function BarberCreationDialog({
   barbershopId 
 }: BarberCreationDialogProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'email' | 'manual'>('email');
   const [invitationCode, setInvitationCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const emailForm = useForm<EmailInviteData>({
+  const _emailForm = useForm<EmailInviteData>({
     resolver: zodResolver(emailInviteSchema),
     defaultValues: {
       email: '',
@@ -76,7 +76,7 @@ export function BarberCreationDialog({
     },
   });
 
-  const manualForm = useForm<ManualBarberData>({
+  const _manualForm = useForm<ManualBarberData>({
     resolver: zodResolver(manualBarberSchema),
     defaultValues: {
       display_name: '',
@@ -89,7 +89,7 @@ export function BarberCreationDialog({
     },
   });
 
-  const emailInviteMutation = useMutation({
+  const _emailInviteMutation = useMutation({
     mutationFn: async (data: EmailInviteData) => {
       if (!barbershopId) throw new Error('No barbershop ID');
       
@@ -120,15 +120,15 @@ export function BarberCreationDialog({
     },
   });
 
-  const manualCreateMutation = useMutation({
+  const _manualCreateMutation = useMutation({
     mutationFn: async (data: ManualBarberData) => {
       if (!barbershopId) throw new Error('No barbershop ID');
       
-      const specialties = data.specialties 
+      const _specialties = data.specialties 
         ? data.specialties.split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
-      const result = await barberService.createManualBarber({
+      const _result = await barberService.createManualBarber({
         barbershop_id: barbershopId,
         display_name: data.display_name,
         bio: data.bio || null,
@@ -152,7 +152,7 @@ export function BarberCreationDialog({
     },
     onError: (error) => {
       console.error('Error creating manual barber:', error);
-      const errorMessage = error instanceof Error ? error.message : 'No se pudo crear el barbero';
+      const _errorMessage = error instanceof Error ? error.message : 'No se pudo crear el barbero';
       toast({
         title: 'Error',
         description: errorMessage,
@@ -161,7 +161,7 @@ export function BarberCreationDialog({
     },
   });
 
-  const handleCopyCode = () => {
+  const _handleCopyCode = () => {
     if (invitationCode) {
       navigator.clipboard.writeText(invitationCode);
       setCopied(true);
@@ -169,16 +169,16 @@ export function BarberCreationDialog({
     }
   };
 
-  const handleCopyUrl = () => {
+  const _handleCopyUrl = () => {
     if (invitationCode) {
-      const url = `${window.location.origin}/barber/onboarding?code=${invitationCode}`;
+      const _url = `${window.location.origin}/barber/onboarding?code=${invitationCode}`;
       navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const handleClose = (open: boolean) => {
+  const _handleClose = (open: boolean) => {
     if (!emailInviteMutation.isPending && !manualCreateMutation.isPending) {
       emailForm.reset();
       manualForm.reset();
@@ -188,7 +188,7 @@ export function BarberCreationDialog({
     }
   };
 
-  const onboardingUrl = invitationCode 
+  const _onboardingUrl = invitationCode 
     ? `${window.location.origin}/barber/onboarding?code=${invitationCode}`
     : '';
 

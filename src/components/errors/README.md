@@ -5,6 +5,7 @@ Este proyecto implementa un sistema completo de manejo de errores utilizando Err
 ## Componentes
 
 ### ErrorBoundary
+
 Componente principal para capturar errores en el árbol de componentes.
 
 ```tsx
@@ -35,6 +36,7 @@ import { ErrorBoundary } from '@/components/errors';
 ```
 
 ### RouteErrorBoundary
+
 Maneja errores específicos de rutas, incluyendo errores 404.
 
 ```tsx
@@ -47,6 +49,7 @@ Maneja errores específicos de rutas, incluyendo errores 404.
 ```
 
 ### ErrorMessage
+
 Componente para mostrar mensajes de error de forma amigable.
 
 ```tsx
@@ -58,10 +61,11 @@ import { ErrorMessage } from '@/components/errors';
   severity="error"
   onRetry={() => refetch()}
   onDismiss={() => setError(null)}
-/>
+/>;
 ```
 
 ### AsyncErrorBoundary
+
 Maneja errores en operaciones asíncronas con reintentos automáticos.
 
 ```tsx
@@ -69,39 +73,37 @@ import { AsyncErrorBoundary } from '@/components/errors';
 
 <AsyncErrorBoundary
   fallback={(error, retry) => (
-    <ErrorMessage
-      message={error.message}
-      onRetry={retry}
-    />
+    <ErrorMessage message={error.message} onRetry={retry} />
   )}
 >
   <AsyncDataComponent />
-</AsyncErrorBoundary>
+</AsyncErrorBoundary>;
 ```
 
 ## Hooks
 
 ### useErrorHandler
+
 Hook para manejar errores de forma programática.
 
 ```tsx
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 function MyComponent() {
-  const { error, isError, handleError, executeAsync, resetError } = useErrorHandler({
-    showToast: true,
-    logError: true,
-    onError: (error) => {
-      // Manejo personalizado
-    }
-  });
+  const { error, isError, handleError, executeAsync, resetError } =
+    useErrorHandler({
+      showToast: true,
+      logError: true,
+      onError: (error) => {
+        // Manejo personalizado
+      },
+    });
 
   const fetchData = async () => {
-    const data = await executeAsync(
-      () => api.getData(),
-      { operation: 'fetchData' }
-    );
-    
+    const data = await executeAsync(() => api.getData(), {
+      operation: 'fetchData',
+    });
+
     if (data) {
       // Procesar datos
     }
@@ -118,6 +120,7 @@ function MyComponent() {
 ## Utilidades
 
 ### errorLogger
+
 Sistema de logging de errores preparado para integración con servicios externos.
 
 ```tsx
@@ -126,13 +129,13 @@ import { errorLogger } from '@/utils/errorLogger';
 // Log de error
 errorLogger.logError(error, errorInfo, {
   userId: currentUser.id,
-  action: 'booking_submit'
+  action: 'booking_submit',
 });
 
 // Log de advertencia
 errorLogger.logWarning('API rate limit approaching', {
   currentRate: 95,
-  limit: 100
+  limit: 100,
 });
 
 // Obtener errores almacenados (útil para debugging)
@@ -142,12 +145,15 @@ const recentErrors = errorLogger.getStoredErrors();
 ## Mejores Prácticas
 
 ### 1. Niveles de Error Boundary
+
 Usa diferentes niveles según el contexto:
+
 - `page`: Para errores que afectan toda la página
 - `section`: Para errores en secciones específicas
 - `component`: Para errores en componentes individuales
 
 ### 2. Fallbacks Personalizados
+
 Proporciona fallbacks específicos para cada contexto:
 
 ```tsx
@@ -165,6 +171,7 @@ Proporciona fallbacks específicos para cada contexto:
 ```
 
 ### 3. Integración con React Query
+
 Para manejar errores en queries:
 
 ```tsx
@@ -186,6 +193,7 @@ if (error) {
 ```
 
 ### 4. Testing
+
 Siempre prueba tus error boundaries:
 
 ```tsx
@@ -195,7 +203,7 @@ it('handles errors gracefully', () => {
       <ComponentThatThrows />
     </ErrorBoundary>
   );
-  
+
   expect(screen.getByText(/algo salió mal/i)).toBeInTheDocument();
 });
 ```
@@ -229,9 +237,6 @@ if (!this.isDevelopment) {
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
-  integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
-  ],
+  integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
 });
 ```

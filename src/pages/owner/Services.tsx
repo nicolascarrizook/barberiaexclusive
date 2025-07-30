@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { servicesService } from '@/services/services.service';
-import { barbershopService } from '@/services/barbershops.service';
-import { ServiceFormDialog } from '@/components/owner/ServiceFormDialog';
-import { 
+// // // // // import { useState } from 'react';
+// // // // // import { Link } from 'react-router-dom';
+// // // // // import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// // // // // import { Badge } from '@/components/ui/badge';
+// // // // // import { Switch } from '@/components/ui/switch';
+// // // // // import { Skeleton } from '@/components/ui/skeleton';
+// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
+// // // // // import { useToast } from '@/hooks/use-toast';
+// // // // // import { useAuth } from '@/hooks/useAuth';
+// // // // // import { servicesService } from '@/services/services.service';
+// // // // // import { barbershopService } from '@/services/barbershops.service';
+// // // // // import { ServiceFormDialog } from '@/components/owner/ServiceFormDialog';
+// // // // // import { 
   ArrowLeft, 
   Plus, 
   Edit, 
@@ -36,7 +36,7 @@ interface Service {
   order_index: number;
 }
 
-const categories = [
+const _categories = [
   { value: 'all', label: 'Todos', icon: Scissors },
   { value: 'Corte', label: 'Corte', icon: Scissors },
   { value: 'Barba', label: 'Barba', icon: Scissors },
@@ -46,7 +46,7 @@ const categories = [
 export function Services() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -56,7 +56,7 @@ export function Services() {
     queryKey: ['owner-barbershop', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID');
-      const shops = await barbershopService.getByOwner(user.id);
+      const _shops = await barbershopService.getByOwner(user.id);
       return shops[0];
     },
     enabled: !!user?.id,
@@ -73,7 +73,7 @@ export function Services() {
   });
 
   // Toggle service status mutation
-  const toggleStatusMutation = useMutation({
+  const _toggleStatusMutation = useMutation({
     mutationFn: async ({ serviceId, isActive }: { serviceId: string; isActive: boolean }) => {
       await servicesService.updateService(serviceId, { is_active: isActive });
     },
@@ -93,25 +93,25 @@ export function Services() {
     },
   });
 
-  const filteredServices = services?.filter(service => 
+  const _filteredServices = services?.filter(service => 
     selectedCategory === 'all' || service.category === selectedCategory
   ) || [];
 
-  const handleEditService = (service: Service) => {
+  const _handleEditService = (service: Service) => {
     setEditingService(service);
     setIsDialogOpen(true);
   };
 
-  const handleCreateService = () => {
+  const _handleCreateService = () => {
     setEditingService(null);
     setIsDialogOpen(true);
   };
 
-  const handleToggleStatus = (serviceId: string, currentStatus: boolean) => {
+  const _handleToggleStatus = (serviceId: string, currentStatus: boolean) => {
     toggleStatusMutation.mutate({ serviceId, isActive: !currentStatus });
   };
 
-  const getServiceCountByCategory = (category: string) => {
+  const _getServiceCountByCategory = (category: string) => {
     if (!services) return 0;
     if (category === 'all') return services.length;
     return services.filter(service => service.category === category).length;

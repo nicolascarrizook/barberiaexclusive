@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import {
+// // // // // import { useState } from "react";
+// // // // // import { Link, useLocation } from "react-router-dom";
+// // // // // import { Button } from "@/components/ui/button";
+// // // // // import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import {
+// // // // // import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+// // // // // import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,17 +16,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { Menu, Scissors, Calendar, LayoutDashboard, User, LogOut, Settings, Store } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// // // // // import { cn } from "@/lib/utils";
+// // // // // import { Menu, Scissors, Calendar, LayoutDashboard, User, LogOut, Settings, Store } from "lucide-react";
+// // // // // import { useAuth } from "@/hooks/useAuth";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
+  const _location = useLocation();
   const { user, signOut } = useAuth();
 
-  const navItems = [
+  const _navItems = [
     {
       path: '/booking',
       label: 'Reservar cita',
@@ -53,7 +53,7 @@ export function Navigation() {
     },
   ] as const;
 
-  const visibleNavItems = navItems.filter(item => {
+  const _visibleNavItems = navItems.filter(item => {
     if (item.public) return true;
     if (!user) return false;
     if (item.requiredRole && user.role !== item.requiredRole) return false;

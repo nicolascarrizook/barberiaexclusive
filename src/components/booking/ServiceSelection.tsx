@@ -1,7 +1,7 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Service } from "@/types";
-import { Clock, DollarSign } from "lucide-react";
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// // // // // import { Button } from "@/components/ui/button";
+// // // // // import { Service } from "@/types";
+// // // // // import { Clock, DollarSign } from "lucide-react";
 
 interface ServiceSelectionProps {
   services: Service[];
@@ -10,26 +10,28 @@ interface ServiceSelectionProps {
   onNext: () => void;
 }
 
-export function ServiceSelection({ 
-  services, 
-  selectedService, 
+export function ServiceSelection({
+  services,
+  selectedService,
   onSelectService,
-  onNext 
+  onNext,
 }: ServiceSelectionProps) {
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold mb-2">Selecciona un servicio</h2>
-        <p className="text-muted-foreground">Elige el servicio que deseas reservar</p>
+        <p className="text-muted-foreground">
+          Elige el servicio que deseas reservar
+        </p>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2">
         {services.map((service) => (
-          <Card 
+          <Card
             key={service.id}
             className={`cursor-pointer transition-all ${
-              selectedService?.id === service.id 
-                ? 'ring-2 ring-primary' 
+              selectedService?.id === service.id
+                ? 'ring-2 ring-primary'
                 : 'hover:shadow-lg'
             }`}
             onClick={() => onSelectService(service)}
@@ -57,11 +59,7 @@ export function ServiceSelection({
       </div>
 
       <div className="flex justify-end mt-6">
-        <Button 
-          onClick={onNext}
-          disabled={!selectedService}
-          size="lg"
-        >
+        <Button onClick={onNext} disabled={!selectedService} size="lg">
           Siguiente
         </Button>
       </div>

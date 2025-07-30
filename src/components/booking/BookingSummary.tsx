@@ -1,13 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, DollarSign, User, CheckCircle } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Service, Barber } from "@/types";
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// // // // // import { Button } from "@/components/ui/button";
+// // // // // import { Badge } from "@/components/ui/badge";
+// // // // // import { Alert, AlertDescription } from "@/components/ui/alert";
+// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// // // // // import { Separator } from "@/components/ui/separator";
+// // // // // import { Calendar, Clock, DollarSign, User, CheckCircle } from "lucide-react";
+// // // // // import { format } from "date-fns";
+// // // // // import { es } from "date-fns/locale";
+// // // // // import { Service, Barber } from "@/types";
 
 interface BookingSummaryProps {
   service: Service;
@@ -46,8 +46,8 @@ export function BookingSummary({
 
       <Alert>
         <AlertDescription>
-          Hemos enviado un mensaje de confirmación a tu teléfono. 
-          Recibirás un recordatorio 24 horas antes de tu cita.
+          Hemos enviado un mensaje de confirmación a tu teléfono. Recibirás un
+          recordatorio 24 horas antes de tu cita.
         </AlertDescription>
       </Alert>
 
@@ -62,7 +62,12 @@ export function BookingSummary({
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">
               <AvatarImage src={barber.avatar} alt={barber.name} />
-              <AvatarFallback>{barber.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              <AvatarFallback>
+                {barber.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')}
+              </AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold">{barber.name}</p>
@@ -81,7 +86,9 @@ export function BookingSummary({
             </div>
             <div className="flex items-center gap-3">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{time} ({service.duration} minutos)</span>
+              <span className="text-sm">
+                {time} ({service.duration} minutos)
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -92,9 +99,13 @@ export function BookingSummary({
           <Separator />
 
           <div>
-            <Badge variant="secondary" className="mb-2">{service.name}</Badge>
+            <Badge variant="secondary" className="mb-2">
+              {service.name}
+            </Badge>
             {service.description && (
-              <p className="text-sm text-muted-foreground">{service.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {service.description}
+              </p>
             )}
           </div>
 
@@ -107,7 +118,9 @@ export function BookingSummary({
                 <p className="text-sm font-medium">{customerName}</p>
                 <p className="text-sm text-muted-foreground">{customerPhone}</p>
                 {customerEmail && (
-                  <p className="text-sm text-muted-foreground">{customerEmail}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {customerEmail}
+                  </p>
                 )}
               </div>
             </div>

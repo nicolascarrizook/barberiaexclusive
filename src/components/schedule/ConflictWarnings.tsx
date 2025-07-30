@@ -1,9 +1,9 @@
 import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
+// // // // // import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+// // // // // import { Badge } from '@/components/ui/badge';
+// // // // // import { Button } from '@/components/ui/button';
+// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// // // // // import { 
   AlertTriangle, 
   Calendar, 
   Clock, 
@@ -12,8 +12,8 @@ import {
   ChevronRight,
   Info
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+// // // // // import { format } from 'date-fns';
+// // // // // import { es } from 'date-fns/locale';
 
 export interface ScheduleConflict {
   id: string;
@@ -39,7 +39,7 @@ export function ConflictWarnings({ conflicts, onResolve, className }: ConflictWa
     return null;
   }
 
-  const getSeverityColor = (severity: string) => {
+  const _getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
         return 'border-red-200 bg-red-50';
@@ -52,7 +52,7 @@ export function ConflictWarnings({ conflicts, onResolve, className }: ConflictWa
     }
   };
 
-  const getSeverityIcon = (severity: string) => {
+  const _getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'high':
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
@@ -65,7 +65,7 @@ export function ConflictWarnings({ conflicts, onResolve, className }: ConflictWa
     }
   };
 
-  const getSeverityBadge = (severity: string) => {
+  const _getSeverityBadge = (severity: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       high: "destructive",
       medium: "secondary",
@@ -85,7 +85,7 @@ export function ConflictWarnings({ conflicts, onResolve, className }: ConflictWa
     );
   };
 
-  const getTypeIcon = (type: string) => {
+  const _getTypeIcon = (type: string) => {
     switch (type) {
       case 'overlap':
         return <Clock className="h-4 w-4" />;
@@ -100,7 +100,7 @@ export function ConflictWarnings({ conflicts, onResolve, className }: ConflictWa
     }
   };
 
-  const getTypeLabel = (type: string) => {
+  const _getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       overlap: "Superposición de horarios",
       capacity: "Capacidad excedida",
@@ -112,9 +112,9 @@ export function ConflictWarnings({ conflicts, onResolve, className }: ConflictWa
   };
 
   // Group conflicts by severity
-  const highSeverityConflicts = conflicts.filter(c => c.severity === 'high');
-  const mediumSeverityConflicts = conflicts.filter(c => c.severity === 'medium');
-  const lowSeverityConflicts = conflicts.filter(c => c.severity === 'low');
+  const _highSeverityConflicts = conflicts.filter(c => c.severity === 'high');
+  const _mediumSeverityConflicts = conflicts.filter(c => c.severity === 'medium');
+  const _lowSeverityConflicts = conflicts.filter(c => c.severity === 'low');
 
   return (
     <div className={`space-y-4 ${className || ''}`}>
@@ -261,7 +261,7 @@ export function ConflictWarningsExample() {
     }
   ];
 
-  const handleResolve = (conflictId: string) => {
+  const _handleResolve = (conflictId: string) => {
     // Here you would implement the resolution logic
   };
 

@@ -1,6 +1,6 @@
-// // // // // import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-// // // // // import { render, screen, fireEvent } from '@testing-library/react';
-// // // // // import { ErrorBoundary } from '../ErrorBoundary';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ErrorBoundary } from '../ErrorBoundary';
 import React from 'react';
 
 // Mock error logger
@@ -14,7 +14,7 @@ vi.mock('@/utils/errorLogger', () => ({
 }));
 
 // Component that throws an error
-const _ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
+const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {
     throw new Error('Test error');
   }
@@ -22,7 +22,7 @@ const _ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 };
 
 // Component that throws an error in useEffect
-const _ThrowErrorInEffect = () => {
+const ThrowErrorInEffect = () => {
   React.useEffect(() => {
     throw new Error('Effect error');
   }, []);
@@ -31,7 +31,7 @@ const _ThrowErrorInEffect = () => {
 
 describe('ErrorBoundary', () => {
   // Suppress console.error during tests
-  const _originalError = console.error;
+  const originalError = console.error;
   beforeEach(() => {
     console.error = vi.fn();
   });
@@ -64,7 +64,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders custom fallback component when provided', () => {
-    const _CustomFallback = ({ error, resetError }: any) => (
+    const CustomFallback = ({ error, resetError }: { error: Error; resetError: () => void }) => (
       <div>
         <p>Custom error: {error.message}</p>
         <button onClick={resetError}>Custom reset</button>
@@ -82,7 +82,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('calls onError callback when error occurs', () => {
-    const _onError = vi.fn();
+    const onError = vi.fn();
 
     render(
       <ErrorBoundary onError={onError}>
@@ -92,7 +92,7 @@ describe('ErrorBoundary', () => {
 
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'Test error' }),
-      expect.any(Object)
+      expect.objectContaining({ componentStack: expect.any(String) })
     );
   });
 
@@ -193,8 +193,8 @@ describe('ErrorBoundary', () => {
     vi.useRealTimers();
   });
 
-  it('logs errors correctly', () => {
-    const { errorLogger } = require('@/utils/errorLogger');
+  it('logs errors correctly', async () => {
+    const { errorLogger } = await import('@/utils/errorLogger');
 
     render(
       <ErrorBoundary>
@@ -204,10 +204,10 @@ describe('ErrorBoundary', () => {
 
     expect(errorLogger.logError).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'Test error' }),
-      expect.any(Object),
+      expect.objectContaining({ componentStack: expect.any(String) }),
       expect.objectContaining({
         errorBoundary: 'ErrorBoundary',
-        errorBoundaryProps: expect.any(Object),
+        errorBoundaryProps: expect.objectContaining({}),
       })
     );
   });

@@ -1,10 +1,20 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
 
-type User = Database['public']['Tables']['users']['Row'];
-type UserInsert = Database['public']['Tables']['users']['Insert'];
-type UserUpdate = Database['public']['Tables']['users']['Update'];
+type User = Database['public']['Tables']['profiles']['Row'];
+type UserInsert = Database['public']['Tables']['profiles']['Insert'];
+type UserUpdate = Database['public']['Tables']['profiles']['Update'];
+
+// Guest customer type (not in auth system)
+interface GuestCustomer {
+  id: string;
+  full_name: string;
+  phone: string;
+  email?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface CustomerWithStats extends User {
   total_appointments: number;
@@ -14,33 +24,85 @@ export interface CustomerWithStats extends User {
 
 class CustomerService extends BaseService<User> {
   constructor() {
-    super('users');
+    super('profiles');
   }
 
   async createCustomer(customer: {
     full_name: string;
     phone: string;
     email?: string;
-  }): Promise<User> {
-    // Verificar si ya existe un cliente con ese teléfono
-    const _existing = await this.getByPhone(customer.phone);
-    if (existing) return existing;
+  }): Promise<User | GuestCustomer> {
+    // First check if customer exists in profiles (authenticated users)
+    const existing = await this.getByPhone(customer.phone);
+    if (existing) {
+      console.log('📱 Customer already exists in profiles with phone:', customer.phone);
+      return existing;
+    }
 
-    const newCustomer: UserInsert = {
+    // Check if customer exists in guest_customers
+    const { data: existingGuest, error: guestCheckError } = await supabase
+      .from('guest_customers')
+      .select('*')
+      .eq('phone', customer.phone)
+      .single();
+      
+    if (existingGuest && !guestCheckError) {
+      console.log('📱 Guest customer already exists with phone:', customer.phone);
+      return existingGuest;
+    }
+
+    // If has email, check profiles by email
+    if (customer.email) {
+      const existingByEmail = await this.getByEmail(customer.email);
+      if (existingByEmail) {
+        console.log('📧 Customer already exists with email:', customer.email);
+        // Update phone if different
+        if (existingByEmail.phone !== customer.phone) {
+          return this.update(existingByEmail.id, { phone: customer.phone });
+        }
+        return existingByEmail;
+      }
+    }
+
+    // Create as guest customer (no auth required)
+    const newGuestCustomer = {
       full_name: customer.full_name,
       phone: customer.phone,
       email: customer.email || null,
-      role: 'client',
     };
 
-    return this.create(newCustomer);
+    console.log('🆕 Creating new guest customer:', newGuestCustomer);
+    
+    try {
+      const { data, error } = await supabase
+        .from('guest_customers')
+        .insert(newGuestCustomer)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      console.log('✅ Guest customer created:', data);
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error creating guest customer:', error);
+      // If fails due to duplicate, try to find again
+      if (error.message?.includes('duplicate')) {
+        const { data: retryGuest } = await supabase
+          .from('guest_customers')
+          .select('*')
+          .eq('phone', customer.phone)
+          .single();
+        if (retryGuest) return retryGuest;
+      }
+      throw error;
+    }
   }
 
   async getByPhone(phone: string): Promise<User | null> {
     const { data, error } = await this.query()
       .select('*')
       .eq('phone', phone)
-      .eq('role', 'client')
+      .eq('role', 'customer')
       .single();
 
     if (error) {
@@ -55,7 +117,7 @@ class CustomerService extends BaseService<User> {
     const { data, error } = await this.query()
       .select('*')
       .eq('email', email)
-      .eq('role', 'client')
+      .eq('role', 'customer')
       .single();
 
     if (error) {
@@ -69,7 +131,7 @@ class CustomerService extends BaseService<User> {
   async searchCustomers(searchTerm: string): Promise<User[]> {
     const { data, error } = await this.query()
       .select('*')
-      .eq('role', 'client')
+      .eq('role', 'customer')
       .or(
         `full_name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
       )
@@ -83,24 +145,24 @@ class CustomerService extends BaseService<User> {
     customerId: string
   ): Promise<CustomerWithStats | null> {
     // Obtener datos del cliente
-    const _customer = await this.getById(customerId);
+    const customer = await this.getById(customerId);
     if (!customer) return null;
 
     // Obtener estadísticas de citas
     const { data: appointments } = await supabase
       .from('appointments')
-      .select('start_time, total_price, status')
-      .eq('client_id', customerId)
+      .select('start_time, price, status')
+      .eq('customer_id', customerId)
       .order('start_time', { ascending: false });
 
-    const _totalAppointments = appointments?.length || 0;
-    const _lastAppointment = appointments?.[0]?.start_time
+    const totalAppointments = appointments?.length || 0;
+    const lastAppointment = appointments?.[0]?.start_time
       ? new Date(appointments[0].start_time)
       : null;
-    const _totalSpent =
+    const totalSpent =
       appointments
         ?.filter((a) => a.status === 'completed')
-        .reduce((sum, a) => sum + a.total_price, 0) || 0;
+        .reduce((sum, a) => sum + a.price, 0) || 0;
 
     return {
       ...customer,
@@ -134,7 +196,8 @@ class CustomerService extends BaseService<User> {
         `
         *,
         barber:barbers!appointments_barber_id_fkey (
-          user:users!barbers_user_id_fkey (
+          display_name,
+          profile:profiles!barbers_profile_id_fkey (
             full_name
           )
         ),
@@ -144,7 +207,7 @@ class CustomerService extends BaseService<User> {
         )
       `
       )
-      .eq('client_id', customerId)
+      .eq('customer_id', customerId)
       .order('start_time', { ascending: false });
 
     if (error) this.handleError(error);
@@ -152,4 +215,4 @@ class CustomerService extends BaseService<User> {
   }
 }
 
-export const _customerService = new CustomerService();
+export const customerService = new CustomerService();

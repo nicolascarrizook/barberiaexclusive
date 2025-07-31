@@ -1,5 +1,5 @@
-// // // // // import { supabase } from '@/lib/supabase'
-// // // // // import { PostgrestError } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
+import { PostgrestError } from '@supabase/supabase-js'
 
 export interface PaginationParams {
   page?: number;
@@ -21,7 +21,7 @@ export class BaseService<T> {
     if (error) {
       console.error(`Error en ${this.tableName}:`, error);
       // Include error code and details for better debugging
-      const _errorMessage = error.code
+      const errorMessage = error.code
         ? `${error.code}: ${error.message}`
         : error.message;
       throw new Error(errorMessage);
@@ -30,10 +30,10 @@ export class BaseService<T> {
   }
 
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<T>> {
-    const _page = params?.page || 1;
-    const _limit = params?.limit || 10;
-    const _from = (page - 1) * limit;
-    const _to = from + limit - 1;
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
     const { data, error, count } = await supabase
       .from(this.tableName)
@@ -52,12 +52,12 @@ export class BaseService<T> {
     };
   }
 
-  async getById(id: string): Promise<T> {
+  async getById(id: string): Promise<T | null> {
     const { data, error } = await supabase
       .from(this.tableName)
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) this.handleError(error);
     return data;

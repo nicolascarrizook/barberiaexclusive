@@ -1,6 +1,6 @@
-// // // // // import { describe, it, expect, vi, beforeEach } from 'vitest';
-// // // // // import { renderHook, act } from '@testing-library/react';
-// // // // // import { useErrorHandler } from '../useErrorHandler';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { useErrorHandler } from '../useErrorHandler';
 
 // Mock dependencies
 vi.mock('@/utils/errorLogger', () => ({
@@ -30,7 +30,7 @@ describe('useErrorHandler', () => {
 
   it('handles errors correctly', () => {
     const { result } = renderHook(() => useErrorHandler());
-    const _testError = new Error('Test error');
+    const testError = new Error('Test error');
 
     act(() => {
       result.current.handleError(testError);
@@ -43,7 +43,7 @@ describe('useErrorHandler', () => {
   it('logs errors when logError option is true', () => {
     const { errorLogger } = require('@/utils/errorLogger');
     const { result } = renderHook(() => useErrorHandler({ logError: true }));
-    const _testError = new Error('Test error');
+    const testError = new Error('Test error');
 
     act(() => {
       result.current.handleError(testError, { context: 'test' });
@@ -62,7 +62,7 @@ describe('useErrorHandler', () => {
   it('does not log errors when logError option is false', () => {
     const { errorLogger } = require('@/utils/errorLogger');
     const { result } = renderHook(() => useErrorHandler({ logError: false }));
-    const _testError = new Error('Test error');
+    const testError = new Error('Test error');
 
     act(() => {
       result.current.handleError(testError);
@@ -71,14 +71,15 @@ describe('useErrorHandler', () => {
     expect(errorLogger.logError).not.toHaveBeenCalled();
   });
 
-  it('shows toast when showToast option is true', () => {
-    const _mockToast = vi.fn();
-    vi.mocked(require('@/hooks/use-toast').useToast).mockReturnValue({
+  it('shows toast when showToast option is true', async () => {
+    const mockToast = vi.fn();
+    const { useToast } = await import('@/hooks/use-toast');
+    vi.mocked(useToast).mockReturnValue({
       toast: mockToast,
     });
 
     const { result } = renderHook(() => useErrorHandler({ showToast: true }));
-    const _testError = new Error('Test error message');
+    const testError = new Error('Test error message');
 
     act(() => {
       result.current.handleError(testError);
@@ -92,9 +93,9 @@ describe('useErrorHandler', () => {
   });
 
   it('calls onError callback when provided', () => {
-    const _onError = vi.fn();
+    const onError = vi.fn();
     const { result } = renderHook(() => useErrorHandler({ onError }));
-    const _testError = new Error('Test error');
+    const testError = new Error('Test error');
 
     act(() => {
       result.current.handleError(testError);
@@ -105,7 +106,7 @@ describe('useErrorHandler', () => {
 
   it('resets error state correctly', () => {
     const { result } = renderHook(() => useErrorHandler());
-    const _testError = new Error('Test error');
+    const testError = new Error('Test error');
 
     act(() => {
       result.current.handleError(testError);
@@ -140,7 +141,7 @@ describe('useErrorHandler', () => {
 
   it('executeAsync handles successful async operations', async () => {
     const { result } = renderHook(() => useErrorHandler());
-    const _asyncFn = vi.fn().mockResolvedValue('success');
+    const asyncFn = vi.fn().mockResolvedValue('success');
 
     let resultValue;
     await act(async () => {
@@ -153,8 +154,8 @@ describe('useErrorHandler', () => {
 
   it('executeAsync handles failed async operations', async () => {
     const { result } = renderHook(() => useErrorHandler());
-    const _testError = new Error('Async error');
-    const _asyncFn = vi.fn().mockRejectedValue(testError);
+    const testError = new Error('Async error');
+    const asyncFn = vi.fn().mockRejectedValue(testError);
 
     let resultValue;
     await act(async () => {
@@ -170,7 +171,7 @@ describe('useErrorHandler', () => {
 
   it('execute handles successful sync operations', () => {
     const { result } = renderHook(() => useErrorHandler());
-    const _syncFn = vi.fn().mockReturnValue('success');
+    const syncFn = vi.fn().mockReturnValue('success');
 
     let resultValue;
     act(() => {
@@ -183,8 +184,8 @@ describe('useErrorHandler', () => {
 
   it('execute handles failed sync operations', () => {
     const { result } = renderHook(() => useErrorHandler());
-    const _testError = new Error('Sync error');
-    const _syncFn = vi.fn().mockImplementation(() => {
+    const testError = new Error('Sync error');
+    const syncFn = vi.fn().mockImplementation(() => {
       throw testError;
     });
 

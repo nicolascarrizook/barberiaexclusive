@@ -1,7 +1,7 @@
-// // // // // import { Outlet, Navigate } from 'react-router-dom';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { Card } from '@/components/ui/card';
-// // // // // import { Scissors } from 'lucide-react';
+import { Outlet, Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Card } from '@/components/ui/card';
+import { Scissors } from 'lucide-react';
 
 export function AuthLayout() {
   const { user } = useAuth();

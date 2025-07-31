@@ -1,10 +1,11 @@
-// // // // // import { describe, it, expect, vi, beforeEach } from 'vitest'
-// // // // // import { render, screen, waitFor } from '@/test/test-utils'
-// // // // // import { renderHook, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@/test/test-utils'
+import { renderHook, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-// // // // // import { AuthProvider, useAuth } from '../AuthContext'
-// // // // // import { supabase } from '@/lib/supabase'
+import { AuthProvider, useAuth } from '../AuthContext'
+import { supabase } from '@/lib/supabase'
+import { Session, User } from '@supabase/supabase-js'
 
 // Mock de Supabase ya está configurado en setup.ts
 
@@ -14,8 +15,8 @@ describe('AuthContext', () => {
   });
 
   it('provee el contexto de autenticación a los componentes hijos', () => {
-    const _TestComponent = () => {
-      const _auth = useAuth();
+    const TestComponent = () => {
+      const auth = useAuth();
       return <div>{auth.loading ? 'Loading' : 'Loaded'}</div>;
     };
 
@@ -30,9 +31,9 @@ describe('AuthContext', () => {
 
   it('lanza error cuando se usa fuera del provider', () => {
     // Capturar el error de la consola
-    const _consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const _TestComponent = () => {
+    const TestComponent = () => {
       useAuth();
       return null;
     };
@@ -45,7 +46,7 @@ describe('AuthContext', () => {
   });
 
   it('inicia con estado de carga', () => {
-    const _TestComponent = () => {
+    const TestComponent = () => {
       const { loading } = useAuth();
       return <div>{loading ? 'Loading' : 'Ready'}</div>;
     };
@@ -61,7 +62,7 @@ describe('AuthContext', () => {
   });
 
   it('maneja el login exitoso', async () => {
-    const _mockUser = {
+    const mockUser = {
       id: 'user123',
       email: 'test@example.com',
       app_metadata: {},
@@ -70,7 +71,7 @@ describe('AuthContext', () => {
       created_at: new Date().toISOString(),
     };
 
-    const _mockProfile = {
+    const mockProfile = {
       id: 'profile123',
       user_id: 'user123',
       full_name: 'Test User',
@@ -85,7 +86,7 @@ describe('AuthContext', () => {
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
       data: {
         user: mockUser,
-        session: {} as any,
+        session: {} as Session,
       },
       error: null,
     });
@@ -99,7 +100,7 @@ describe('AuthContext', () => {
           }),
         }),
       }),
-    } as any);
+    } as ReturnType<typeof supabase.from>);
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: AuthProvider,
@@ -117,7 +118,7 @@ describe('AuthContext', () => {
   });
 
   it('maneja errores de login', async () => {
-    const _loginError = new Error('Invalid credentials');
+    const loginError = new Error('Invalid credentials');
 
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
       data: { user: null, session: null },
@@ -138,7 +139,7 @@ describe('AuthContext', () => {
   });
 
   it('maneja el registro exitoso', async () => {
-    const _mockUser = {
+    const mockUser = {
       id: 'newuser123',
       email: 'newuser@example.com',
       app_metadata: {},
@@ -150,7 +151,7 @@ describe('AuthContext', () => {
     vi.mocked(supabase.auth.signUp).mockResolvedValueOnce({
       data: {
         user: mockUser,
-        session: {} as any,
+        session: {} as Session,
       },
       error: null,
     });
@@ -175,7 +176,7 @@ describe('AuthContext', () => {
           }),
         }),
       }),
-    } as any);
+    } as ReturnType<typeof supabase.from>);
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: AuthProvider,
@@ -211,7 +212,7 @@ describe('AuthContext', () => {
   });
 
   it('actualiza el perfil del usuario', async () => {
-    const _updatedProfile = {
+    const updatedProfile = {
       full_name: 'Updated Name',
       phone: '+9876543210',
     };
@@ -233,7 +234,7 @@ describe('AuthContext', () => {
           }),
         }),
       }),
-    } as any);
+    } as ReturnType<typeof supabase.from>);
 
     const { result } = renderHook(() => useAuth(), {
       wrapper: AuthProvider,
@@ -261,8 +262,8 @@ describe('AuthContext', () => {
   });
 
   it('escucha cambios en el estado de autenticación', async () => {
-    const _unsubscribe = vi.fn();
-    const _onAuthStateChange = vi.fn().mockReturnValue({
+    const unsubscribe = vi.fn();
+    const onAuthStateChange = vi.fn().mockReturnValue({
       data: { subscription: { unsubscribe } },
     });
 

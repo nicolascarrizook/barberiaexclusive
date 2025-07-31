@@ -1,20 +1,20 @@
-import {useEffect} from 'react';
-// // // // // import { useForm, Controller } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-// // // // // import { 
+import {useEffect, useState} from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { 
   Card, 
   CardContent, 
   CardDescription, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Switch } from '@/components/ui/switch';
-// // // // // import {
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
   Form,
   FormControl,
   FormDescription,
@@ -23,10 +23,10 @@ import {useEffect} from 'react';
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { barbershopHoursService, WeekSchedule } from '@/services/barbershop-hours.service';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { 
+import { useToast } from '@/hooks/use-toast';
+import { barbershopHoursService, WeekSchedule } from '@/services/barbershop-hours.service';
+import { barbershopService } from '@/services/barbershops.service';
+import { 
   Save, 
   Loader2, 
   RotateCcw, 
@@ -35,12 +35,12 @@ import {useEffect} from 'react';
   AlertCircle,
   Check
 } from 'lucide-react';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Separator } from '@/components/ui/separator';
-// // // // // import { DayOfWeek } from '@/types/database';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { DayOfWeek } from '@/types/database';
 
 // Esquema de validación para el formulario
-const _dayScheduleSchema = z.object({
+const dayScheduleSchema = z.object({
   is_closed: z.boolean(),
   open_time: z.string().optional(),
   close_time: z.string().optional(),
@@ -65,7 +65,7 @@ const _dayScheduleSchema = z.object({
   message: "Los días abiertos deben tener horario completo y los descansos deben tener inicio y fin"
 });
 
-const _scheduleSchema = z.object({
+const scheduleSchema = z.object({
   monday: dayScheduleSchema,
   tuesday: dayScheduleSchema,
   wednesday: dayScheduleSchema,
@@ -106,7 +106,7 @@ const daysOrder: DayOfWeek[] = [
 
 export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleConfigProps) {
   const { toast } = useToast();
-  const _queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Consultar horarios actuales
@@ -121,7 +121,7 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
     queryFn: () => barbershopService.getById(barbershopId),
   });
 
-  const _form = useForm<ScheduleFormData>({
+  const form = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
       monday: { is_closed: false, open_time: '09:00', close_time: '20:00' },
@@ -144,7 +144,7 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
 
       // Convertir los datos del servicio al formato del formulario
       currentSchedule.forEach((daySchedule) => {
-        const _day = daySchedule.day_of_week as DayOfWeek;
+        const day = daySchedule.day_of_week as DayOfWeek;
         formData[day] = {
           is_closed: daySchedule.is_closed,
           open_time: daySchedule.open_time || '09:00',
@@ -157,7 +157,7 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
   }, [currentSchedule, barbershop, form]);
 
   // Mutación para actualizar horarios
-  const _updateScheduleMutation = useMutation({
+  const updateScheduleMutation = useMutation({
     mutationFn: async (data: ScheduleFormData) => {
       // Convertir datos del formulario al formato del servicio
       const weekSchedule: WeekSchedule = {};
@@ -197,7 +197,7 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
   });
 
   // Mutación para restablecer valores por defecto
-  const _resetToDefaultMutation = useMutation({
+  const resetToDefaultMutation = useMutation({
     mutationFn: () => barbershopHoursService.copyDefaultSchedule(barbershopId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['barbershop-schedule', barbershopId] });
@@ -216,13 +216,13 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
     },
   });
 
-  const _onSubmit = async (data: ScheduleFormData) => {
+  const onSubmit = async (data: ScheduleFormData) => {
     try {
       // Validación básica: horarios de apertura y cierre
       for (const [day, schedule] of Object.entries(data)) {
         if (day === 'max_concurrent_appointments') continue;
         
-        const _daySchedule = schedule as typeof data.monday;
+        const daySchedule = schedule as typeof data.monday;
         if (!daySchedule.is_closed) {
           if (!daySchedule.open_time || !daySchedule.close_time) {
             toast({
@@ -234,8 +234,8 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
           }
           
           // Validar que la hora de cierre sea posterior a la de apertura
-          const _openTime = parseInt(daySchedule.open_time.replace(':', ''));
-          const _closeTime = parseInt(daySchedule.close_time.replace(':', ''));
+          const openTime = parseInt(daySchedule.open_time.replace(':', ''));
+          const closeTime = parseInt(daySchedule.close_time.replace(':', ''));
           
           if (closeTime <= openTime) {
             toast({
@@ -259,14 +259,14 @@ export function BarbershopScheduleConfig({ barbershopId }: BarbershopScheduleCon
     }
   };
 
-  const _handleResetToDefault = () => {
+  const handleResetToDefault = () => {
     if (window.confirm('¿Estás seguro de que deseas restablecer los horarios por defecto? Se perderán los cambios actuales.')) {
       resetToDefaultMutation.mutate();
     }
   };
 
-  const _isLoading = isLoadingSchedule || isLoadingBarbershop;
-  const _isSaving = updateScheduleMutation.isPending || resetToDefaultMutation.isPending;
+  const isLoading = isLoadingSchedule || isLoadingBarbershop;
+  const isSaving = updateScheduleMutation.isPending || resetToDefaultMutation.isPending;
 
   if (isLoading) {
     return (

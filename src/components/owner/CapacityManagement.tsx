@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// // // // // import { Settings, Activity } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Settings, Activity } from 'lucide-react'
 import CapacityConfiguration from './CapacityConfiguration';
 import AvailabilityOverview from './AvailabilityOverview';
 
@@ -19,7 +19,7 @@ const CapacityManagement: React.FC<CapacityManagementProps> = ({
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Función para refrescar los datos cuando se actualize la configuración
-  const _handleConfigurationChange = () => {
+  const handleConfigurationChange = () => {
     setRefreshKey((prev) => prev + 1);
   };
 

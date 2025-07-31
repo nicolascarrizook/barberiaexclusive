@@ -1,20 +1,20 @@
-import {useEffect} from 'react';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-// // // // // import { 
+import {useEffect, useState} from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { 
   Card, 
   CardContent, 
   CardDescription, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Switch } from '@/components/ui/switch';
-// // // // // import {
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
   Form,
   FormControl,
   FormDescription,
@@ -23,11 +23,11 @@ import {useEffect} from 'react';
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { barberSchedulesService, WeeklyBarberSchedule } from '@/services/barber-schedules.service';
-// // // // // import { barbershopHoursService } from '@/services/barbershop-hours.service';
-// // // // // import { supabase } from '@/lib/supabase';
-// // // // // import { 
+import { useToast } from '@/hooks/use-toast';
+import { barberSchedulesService, WeeklyBarberSchedule } from '@/services/barber-schedules.service';
+import { barbershopHoursService } from '@/services/barbershop-hours.service';
+import { supabase } from '@/lib/supabase';
+import { 
   Save, 
   Loader2, 
   Clock, 
@@ -37,10 +37,10 @@ import {useEffect} from 'react';
   Copy,
   Info
 } from 'lucide-react';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Separator } from '@/components/ui/separator';
-// // // // // import { DayOfWeek } from '@/types/database';
-// // // // // import {
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { DayOfWeek } from '@/types/database';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -48,7 +48,7 @@ import {useEffect} from 'react';
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-// // // // // import {
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -57,7 +57,7 @@ import {useEffect} from 'react';
 } from '@/components/ui/select';
 
 // Schema for form validation
-const _dayScheduleSchema = z.object({
+const dayScheduleSchema = z.object({
   is_working: z.boolean(),
   start_time: z.string().optional(),
   end_time: z.string().optional(),
@@ -67,8 +67,8 @@ const _dayScheduleSchema = z.object({
   (data) => {
     if (!data.is_working) return true;
     // Check that times are not just empty strings
-    const _hasValidStartTime = data.start_time && data.start_time.trim() !== '';
-    const _hasValidEndTime = data.end_time && data.end_time.trim() !== '';
+    const hasValidStartTime = data.start_time && data.start_time.trim() !== '';
+    const hasValidEndTime = data.end_time && data.end_time.trim() !== '';
     return hasValidStartTime && hasValidEndTime;
   },
   {
@@ -76,7 +76,7 @@ const _dayScheduleSchema = z.object({
   }
 );
 
-const _scheduleSchema = z.object({
+const scheduleSchema = z.object({
   monday: dayScheduleSchema,
   tuesday: dayScheduleSchema,
   wednesday: dayScheduleSchema,
@@ -118,7 +118,7 @@ const daysOrder: DayOfWeek[] = [
 
 export function BarberWorkSchedule({ barberId, barbershopId, barberName }: BarberWorkScheduleProps) {
   const { toast } = useToast();
-  const _queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
   const [selectedSourceBarber, setSelectedSourceBarber] = useState<string>('');
@@ -149,7 +149,7 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
     },
   });
 
-  const _form = useForm<ScheduleFormData>({
+  const form = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
       monday: { is_working: true, start_time: '09:00', end_time: '20:00', break_start: '13:00', break_end: '14:00' },
@@ -180,7 +180,7 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
 
       // Update with actual schedule data
       currentSchedule.forEach((daySchedule) => {
-        const _day = daySchedule.day_of_week as DayOfWeek;
+        const day = daySchedule.day_of_week as DayOfWeek;
         formData[day] = {
           is_working: daySchedule.is_working ?? true, // If record exists, assume working
           start_time: daySchedule.start_time || '09:00',
@@ -195,7 +195,7 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
   }, [currentSchedule, form]);
 
   // Update schedule mutation
-  const _updateScheduleMutation = useMutation({
+  const updateScheduleMutation = useMutation({
     mutationFn: async (data: ScheduleFormData) => {
       const weekSchedule: WeeklyBarberSchedule = {};
       daysOrder.forEach((day) => {
@@ -224,7 +224,7 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
   });
 
   // Copy schedule mutation
-  const _copyScheduleMutation = useMutation({
+  const copyScheduleMutation = useMutation({
     mutationFn: async () => {
       if (!selectedSourceBarber) throw new Error('Debes seleccionar un barbero');
       await barberSchedulesService.copyBarberSchedule(selectedSourceBarber, barberId);
@@ -246,14 +246,14 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
     },
   });
 
-  const _onSubmit = (data: ScheduleFormData) => {
+  const onSubmit = (data: ScheduleFormData) => {
     // Validate against barbershop hours before submitting
     let hasErrors = false;
     const errors: string[] = [];
 
     daysOrder.forEach((day) => {
-      const _dayData = data[day];
-      const _warning = getScheduleWarning(day, dayData);
+      const dayData = data[day];
+      const warning = getScheduleWarning(day, dayData);
       if (warning && dayData.is_working) {
         hasErrors = true;
         errors.push(`${dayLabels[day]}: ${warning}`);
@@ -272,15 +272,15 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
     updateScheduleMutation.mutate(data);
   };
 
-  const _handleCopySchedule = () => {
+  const handleCopySchedule = () => {
     copyScheduleMutation.mutate();
   };
 
   // Check if schedule is within barbershop hours
-  const _getScheduleWarning = (day: DayOfWeek, dayData: any): string | null => {
+  const getScheduleWarning = (day: DayOfWeek, dayData: any): string | null => {
     if (!dayData.is_working || !barbershopSchedule) return null;
 
-    const _barbershopDay = barbershopSchedule.find(s => s.day_of_week === day);
+    const barbershopDay = barbershopSchedule.find(s => s.day_of_week === day);
     if (!barbershopDay || barbershopDay.is_closed) {
       return 'La barbería está cerrada este día';
     }
@@ -356,8 +356,8 @@ export function BarberWorkSchedule({ barberId, barbershopId, barberName }: Barbe
 
                 <div className="space-y-4">
                   {daysOrder.map((day) => {
-                    const _dayData = form.watch(day as any);
-                    const _warning = getScheduleWarning(day, dayData);
+                    const dayData = form.watch(day as any);
+                    const warning = getScheduleWarning(day, dayData);
 
                     return (
                       <div key={day} className="rounded-lg border p-4">

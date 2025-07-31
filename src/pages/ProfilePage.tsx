@@ -1,17 +1,17 @@
-// // // // // import { useState } from 'react';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { Loader2, Camera } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2, Camera } from 'lucide-react';
 
-const _profileSchema = z.object({
+const profileSchema = z.object({
   fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   phone: z.string().min(10, 'El teléfono debe tener al menos 10 dígitos'),
 });
@@ -35,7 +35,7 @@ export function ProfilePage() {
     },
   });
 
-  const _onSubmit = async (data: ProfileFormData) => {
+  const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
     try {
       await updateProfile({

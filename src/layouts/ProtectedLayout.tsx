@@ -1,8 +1,8 @@
-// // // // // import { Navigate, Outlet, useLocation } from 'react-router-dom';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { Navigation } from '@/components/layout/Navigation';
-// // // // // import { Toaster } from '@/components/ui/toaster';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Navigation } from '@/components/layout/Navigation';
+import { Toaster } from '@/components/ui/toaster';
+import { SimpleAuthLoader } from '@/components/ui/minimalist-scissors-loader';
 
 interface ProtectedLayoutProps {
   requiredRole?: 'admin' | 'barber' | 'customer' | 'owner';
@@ -10,19 +10,10 @@ interface ProtectedLayoutProps {
 
 export function ProtectedLayout({ requiredRole }: ProtectedLayoutProps) {
   const { user, loading } = useAuth();
-  const _location = useLocation();
+  const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </div>
-      </div>
-    );
+    return <SimpleAuthLoader />;
   }
 
   if (!user) {

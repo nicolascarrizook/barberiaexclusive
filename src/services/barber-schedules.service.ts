@@ -1,7 +1,7 @@
-// // // // // import { BaseService } from './base.service';
-// // // // // import { supabase } from '@/lib/supabase';
-// // // // // import { Database } from '@/types/database';
-// // // // // import { barbershopHoursService } from './barbershop-hours.service';
+import { BaseService } from './base.service';
+import { supabase } from '@/lib/supabase';
+import { Database } from '@/types/database';
+import { barbershopHoursService } from './barbershop-hours.service';
 
 // Type definitions from database - using working_hours until migration 007 is applied
 type WorkingHoursTable = Database['public']['Tables']['working_hours'];
@@ -69,7 +69,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   constructor() {
     // TODO: Change to 'barber_working_hours' once migration 007 is applied
     // For now, we'll use the existing 'working_hours' table
-    super('working_hours' as any);
+    super('working_hours' as 'barber_working_hours');
   }
 
   /**
@@ -131,7 +131,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   ): Promise<BarberSchedule | null> {
     try {
       // Check if schedule exists for this day
-      const _existing = await this.getDaySchedule(
+      const existing = await this.getDaySchedule(
         barberId,
         daySchedule.day_of_week
       );
@@ -150,7 +150,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       // Validate against barbershop hours before saving (only for working days)
-      const _validation = await this.validateScheduleAgainstBarbershop(
+      const validation = await this.validateScheduleAgainstBarbershop(
         barberId,
         daySchedule
       );
@@ -220,7 +220,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       // Validate all working days first
       for (const daySchedule of weeklySchedule.schedule) {
         if (daySchedule.is_working) {
-          const _validation = await this.validateScheduleAgainstBarbershop(
+          const validation = await this.validateScheduleAgainstBarbershop(
             weeklySchedule.barber_id,
             daySchedule
           );
@@ -234,7 +234,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 
       // Update each day
       for (const daySchedule of weeklySchedule.schedule) {
-        const _updated = await this.upsertDaySchedule(
+        const updated = await this.upsertDaySchedule(
           weeklySchedule.barber_id,
           daySchedule
         );
@@ -321,7 +321,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   ): Promise<BarberSchedule[]> {
     try {
       // Get source barber's schedule
-      const _sourceSchedule = await this.getWeeklySchedule(sourceBarberId);
+      const sourceSchedule = await this.getWeeklySchedule(sourceBarberId);
 
       if (!sourceSchedule.length) {
         throw new Error('Source barber has no schedule defined');
@@ -419,7 +419,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       // Get barbershop hours
-      const _barbershopHours =
+      const barbershopHours =
         await this.barbershopHoursService.getBarbershopSchedule(
           barber.barbershop_id
         );
@@ -497,7 +497,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       // Get barbershop hours for this day
-      const _barbershopDay = await this.barbershopHoursService.getDaySchedule(
+      const barbershopDay = await this.barbershopHoursService.getDaySchedule(
         barber.barbershop_id,
         this.getDayOfWeekEnum(schedule.day_of_week)
       );
@@ -509,9 +509,9 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 
       // Validate start and end times
       // Handle empty strings as well as null/undefined
-      const _hasStartTime =
+      const hasStartTime =
         schedule.start_time && schedule.start_time.trim() !== '';
-      const _hasEndTime = schedule.end_time && schedule.end_time.trim() !== '';
+      const hasEndTime = schedule.end_time && schedule.end_time.trim() !== '';
 
       if (!hasStartTime || !hasEndTime) {
         errors.push('Start and end times are required when working');
@@ -567,10 +567,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   async isBarberAvailable(params: AvailabilityCheckParams): Promise<boolean> {
     try {
       const { barber_id, date, start_time, end_time } = params;
-      const _dayOfWeek = date.getDay();
+      const dayOfWeek = date.getDay();
 
       // Get barber's schedule for this day
-      const _daySchedule = await this.getDaySchedule(barber_id, dayOfWeek);
+      const daySchedule = await this.getDaySchedule(barber_id, dayOfWeek);
 
       if (!daySchedule || !daySchedule.is_working) {
         return false;
@@ -586,10 +586,10 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 
       // Check if requested time overlaps with break
       if (daySchedule.break_start && daySchedule.break_end) {
-        const _requestedStart = this.timeToMinutes(start_time);
-        const _requestedEnd = this.timeToMinutes(end_time);
-        const _breakStart = this.timeToMinutes(daySchedule.break_start);
-        const _breakEnd = this.timeToMinutes(daySchedule.break_end);
+        const requestedStart = this.timeToMinutes(start_time);
+        const requestedEnd = this.timeToMinutes(end_time);
+        const breakStart = this.timeToMinutes(daySchedule.break_start);
+        const breakEnd = this.timeToMinutes(daySchedule.break_end);
 
         // Check for overlap
         if (requestedStart < breakEnd && requestedEnd > breakStart) {
@@ -598,9 +598,9 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       }
 
       // Check for existing appointments on this date
-      const _startOfDay = new Date(date);
+      const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
-      const _endOfDay = new Date(date);
+      const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
       const { data: appointments } = await supabase
@@ -629,28 +629,28 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
     serviceDuration: number
   ): Promise<TimeSlot[]> {
     try {
-      const _dayOfWeek = date.getDay();
-      const _daySchedule = await this.getDaySchedule(barberId, dayOfWeek);
+      const dayOfWeek = date.getDay();
+      const daySchedule = await this.getDaySchedule(barberId, dayOfWeek);
 
       if (!daySchedule || !daySchedule.is_working) {
         return [];
       }
 
       const slots: TimeSlot[] = [];
-      const _slotDuration = serviceDuration;
-      const _workStart = this.timeToMinutes(daySchedule.start_time!);
-      const _workEnd = this.timeToMinutes(daySchedule.end_time!);
-      const _breakStart = daySchedule.break_start
+      const slotDuration = serviceDuration;
+      const workStart = this.timeToMinutes(daySchedule.start_time!);
+      const workEnd = this.timeToMinutes(daySchedule.end_time!);
+      const breakStart = daySchedule.break_start
         ? this.timeToMinutes(daySchedule.break_start)
         : null;
-      const _breakEnd = daySchedule.break_end
+      const breakEnd = daySchedule.break_end
         ? this.timeToMinutes(daySchedule.break_end)
         : null;
 
       // Get existing appointments for this date
-      const _startOfDay = new Date(date);
+      const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
-      const _endOfDay = new Date(date);
+      const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
       const { data: appointments } = await supabase
@@ -666,7 +666,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
       let currentTime = workStart;
 
       while (currentTime + slotDuration <= workEnd) {
-        const _slotEnd = currentTime + slotDuration;
+        const slotEnd = currentTime + slotDuration;
 
         // Skip if overlaps with break
         if (breakStart !== null && breakEnd !== null) {
@@ -677,13 +677,13 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
         }
 
         // Check if slot is available (not overlapping with appointments)
-        const _isAvailable = !appointments?.some((apt) => {
-          const _aptStartTime = new Date(apt.start_time);
-          const _aptEndTime = new Date(apt.end_time);
-          const _aptStart = this.timeToMinutes(
+        const isAvailable = !appointments?.some((apt) => {
+          const aptStartTime = new Date(apt.start_time);
+          const aptEndTime = new Date(apt.end_time);
+          const aptStart = this.timeToMinutes(
             `${aptStartTime.getHours().toString().padStart(2, '0')}:${aptStartTime.getMinutes().toString().padStart(2, '0')}`
           );
-          const _aptEnd = this.timeToMinutes(
+          const aptEnd = this.timeToMinutes(
             `${aptEndTime.getHours().toString().padStart(2, '0')}:${aptEndTime.getMinutes().toString().padStart(2, '0')}`
           );
           return currentTime < aptEnd && slotEnd > aptStart;
@@ -763,7 +763,7 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
           barbers.map((b) => b.id)
         );
 
-      const _scheduledIds = new Set(scheduled?.map((s) => s.barber_id) || []);
+      const scheduledIds = new Set(scheduled?.map((s) => s.barber_id) || []);
       return barbers.filter((b) => !scheduledIds.has(b.id)).map((b) => b.id);
     } catch (error) {
       console.error('Error getting barbers without schedule:', error);
@@ -778,8 +778,8 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
   }
 
   private minutesToTime(minutes: number): string {
-    const _hours = Math.floor(minutes / 60);
-    const _mins = minutes % 60;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
   }
 
@@ -815,4 +815,4 @@ export class BarberSchedulesService extends BaseService<BarberWorkingHoursRow> {
 }
 
 // Export a singleton instance
-export const _barberSchedulesService = new BarberSchedulesService();
+export const barberSchedulesService = new BarberSchedulesService();

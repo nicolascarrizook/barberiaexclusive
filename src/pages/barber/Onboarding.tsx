@@ -1,20 +1,20 @@
-import {useEffect} from 'react';
-// // // // // import { useNavigate, useSearchParams } from 'react-router-dom';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { InvitationCodeForm } from '@/components/barber/InvitationCodeForm';
-// // // // // import { BarberProfileSetup } from '@/components/barber/BarberProfileSetup';
-// // // // // import { LoginForm } from '@/components/auth/LoginForm';
-// // // // // import { RegisterForm } from '@/components/auth/RegisterForm';
-// // // // // import { Scissors, CheckCircle, AlertCircle, UserPlus, LogIn } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InvitationCodeForm } from '@/components/barber/InvitationCodeForm';
+import { BarberProfileSetup } from '@/components/barber/BarberProfileSetup';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { RegisterForm } from '@/components/auth/RegisterForm';
+import { Scissors, CheckCircle, AlertCircle, UserPlus, LogIn } from 'lucide-react';
 
 type OnboardingStep = 'auth' | 'code' | 'profile' | 'complete';
 
 export function BarberOnboarding() {
-  const _navigate = useNavigate();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isLoading } = useAuth();
   const [step, setStep] = useState<OnboardingStep>('auth');
@@ -24,7 +24,7 @@ export function BarberOnboarding() {
 
   // Get invitation code from URL if present
   useEffect(() => {
-    const _codeFromUrl = searchParams.get('code');
+    const codeFromUrl = searchParams.get('code');
     if (codeFromUrl) {
       setInvitationCode(codeFromUrl);
     }
@@ -49,18 +49,18 @@ export function BarberOnboarding() {
     }
   }, [user, isLoading, navigate]);
 
-  const _handleAuthSuccess = () => {
+  const handleAuthSuccess = () => {
     // After successful auth, move to code validation
     setStep('code');
   };
 
-  const _handleCodeSuccess = (barbershopId: string) => {
+  const handleCodeSuccess = (barbershopId: string) => {
     // After successful code validation, move to profile setup
     setBarbershopId(barbershopId);
     setStep('profile');
   };
 
-  const _handleProfileComplete = () => {
+  const handleProfileComplete = () => {
     // Profile setup complete
     setStep('complete');
     // Redirect to barber dashboard after a short delay

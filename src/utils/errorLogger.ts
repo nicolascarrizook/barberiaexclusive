@@ -6,8 +6,8 @@ interface ErrorInfo {
   url: string;
   userAgent: string;
   errorBoundary?: string;
-  errorBoundaryProps?: Record<string, any>;
-  additionalInfo?: Record<string, any>;
+  errorBoundaryProps?: Record<string, unknown>;
+  additionalInfo?: Record<string, unknown>;
 }
 
 class ErrorLogger {
@@ -20,7 +20,7 @@ class ErrorLogger {
   logError(
     error: Error,
     errorInfo?: React.ErrorInfo,
-    additionalContext?: Record<string, any>
+    additionalContext?: Record<string, unknown>
   ) {
     const errorData: ErrorInfo = {
       message: error.message,
@@ -68,8 +68,8 @@ class ErrorLogger {
    */
   private storeErrorInSession(errorData: ErrorInfo) {
     try {
-      const _existingErrors = this.getStoredErrors();
-      const _updatedErrors = [errorData, ...existingErrors].slice(0, 10); // Keep last 10 errors
+      const existingErrors = this.getStoredErrors();
+      const updatedErrors = [errorData, ...existingErrors].slice(0, 10); // Keep last 10 errors
       sessionStorage.setItem(
         'barbershop_errors',
         JSON.stringify(updatedErrors)
@@ -85,7 +85,7 @@ class ErrorLogger {
    */
   getStoredErrors(): ErrorInfo[] {
     try {
-      const _stored = sessionStorage.getItem('barbershop_errors');
+      const stored = sessionStorage.getItem('barbershop_errors');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -106,8 +106,8 @@ class ErrorLogger {
   /**
    * Logs a warning (non-fatal error)
    */
-  logWarning(message: string, context?: Record<string, any>) {
-    const _warningData = {
+  logWarning(message: string, context?: Record<string, unknown>) {
+    const warningData = {
       message,
       timestamp: new Date().toISOString(),
       url: window.location.href,
@@ -123,4 +123,4 @@ class ErrorLogger {
   }
 }
 
-export const _errorLogger = new ErrorLogger();
+export const errorLogger = new ErrorLogger();

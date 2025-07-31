@@ -2,7 +2,7 @@
 export * from './database.generated';
 
 // Additional type helpers for convenience
-// // // // // import { Database } from './database.generated'
+import { Database } from './database.generated'
 
 export type Tables = Database['public']['Tables'];
 export type Enums = Database['public']['Enums'];
@@ -31,3 +31,17 @@ export type NotificationType = Enums['notification_type'];
 export type NotificationChannel = Enums['notification_channel'];
 export type DayOfWeek = Enums['day_of_week'];
 export type TimeOffStatus = Enums['time_off_status'];
+
+// Real-time event types
+export interface RealtimeAppointmentPayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new?: Appointment;
+  old?: Appointment;
+}
+
+export interface RealtimeAvailabilityUpdate {
+  barberId: string;
+  date: string;
+  availableSlots: number;
+  timestamp: Date;
+}

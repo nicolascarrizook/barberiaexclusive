@@ -1,13 +1,13 @@
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Badge } from "@/components/ui/badge";
-// // // // // import { Alert, AlertDescription } from "@/components/ui/alert";
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// // // // // import { Separator } from "@/components/ui/separator";
-// // // // // import { Calendar, Clock, DollarSign, User, CheckCircle } from "lucide-react";
-// // // // // import { format } from "date-fns";
-// // // // // import { es } from "date-fns/locale";
-// // // // // import { Service, Barber } from "@/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Calendar, Clock, DollarSign, User, CheckCircle } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Service, Barber } from "@/types";
 
 interface BookingSummaryProps {
   service: Service;
@@ -87,7 +87,7 @@ export function BookingSummary({
             <div className="flex items-center gap-3">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {time} ({service.duration} minutos)
+                {time} ({service.duration_minutes} minutos)
               </span>
             </div>
             <div className="flex items-center gap-3">

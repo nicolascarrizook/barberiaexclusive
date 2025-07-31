@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react'
-// // // // // import { format, addDays, isAfter, isBefore } from 'date-fns'
-// // // // // import { es } from 'date-fns/locale'
-// // // // // import { DateRange } from 'react-day-picker'
-// // // // // import { CalendarDays, AlertCircle, Clock, Send, X } from 'lucide-react'
+import { format, addDays, isAfter, isBefore } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { DateRange } from 'react-day-picker'
+import { CalendarDays, AlertCircle, Clock, Send, X } from 'lucide-react'
 
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// // // // // import { Button } from '@/components/ui/button'
-// // // // // import { Textarea } from '@/components/ui/textarea'
-// // // // // import { Label } from '@/components/ui/label'
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert'
-// // // // // import { Badge } from '@/components/ui/badge'
-// // // // // import { Separator } from '@/components/ui/separator'
-// // // // // import { DateRangePicker } from '@/components/ui/date-range-picker'
-// // // // // import { Skeleton } from '@/components/ui/skeleton'
-// // // // // import {
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
   Table,
   TableBody,
   TableCell,
@@ -22,9 +22,9 @@ import React, { useState, useEffect } from 'react'
   TableRow,
 } from '@/components/ui/table'
 
-// // // // // import { useAuth } from '@/hooks/useAuth'
-// // // // // import { useTimeOff } from '@/hooks/useTimeOff'
-// // // // // import { TimeOffWithBarber } from '@/services/time-off.service'
+import { useAuth } from '@/hooks/useAuth'
+import { useTimeOff } from '@/hooks/useTimeOff'
+import { TimeOffWithBarber } from '@/services/time-off.service'
 
 export function VacationRequestForm() {
   const { user } = useAuth()
@@ -57,18 +57,18 @@ export function VacationRequestForm() {
 
   // Verificar conflictos y calcular días cuando cambian las fechas
   useEffect(() => {
-    const _checkDateRange = async () => {
+    const checkDateRange = async () => {
       if (!dateRange?.from || !dateRange?.to || !user?.id) return
 
       setCheckingConflict(true)
       
       // Calcular días laborables
-      const _days = calculateWorkingDays(dateRange.from, dateRange.to)
+      const days = calculateWorkingDays(dateRange.from, dateRange.to)
       setWorkingDays(days)
 
       // Verificar conflictos
-      const _startDate = format(dateRange.from, 'yyyy-MM-dd')
-      const _endDate = format(dateRange.to, 'yyyy-MM-dd')
+      const startDate = format(dateRange.from, 'yyyy-MM-dd')
+      const endDate = format(dateRange.to, 'yyyy-MM-dd')
       
       const [conflict, appointments] = await Promise.all([
         checkConflicts(user.id, startDate, endDate),
@@ -83,7 +83,7 @@ export function VacationRequestForm() {
     checkDateRange()
   }, [dateRange, user?.id, checkConflicts, getAffectedAppointments, calculateWorkingDays])
 
-  const _handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!dateRange?.from || !dateRange?.to || !user?.id || !reason.trim()) {
@@ -117,7 +117,7 @@ export function VacationRequestForm() {
     }
   }
 
-  const _handleCancel = async (requestId: string) => {
+  const handleCancel = async (requestId: string) => {
     if (!user?.id) return
     
     try {
@@ -128,7 +128,7 @@ export function VacationRequestForm() {
     }
   }
 
-  const _getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
       pending: { variant: "secondary", label: "Pendiente" },
       approved: { variant: "default", label: "Aprobada" },
@@ -140,10 +140,10 @@ export function VacationRequestForm() {
     return <Badge variant={variant}>{label}</Badge>
   }
 
-  const _canCancelRequest = (request: TimeOffWithBarber) => {
-    const _today = new Date()
+  const canCancelRequest = (request: TimeOffWithBarber) => {
+    const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const _startDate = new Date(request.start_date)
+    const startDate = new Date(request.start_date)
     
     return (
       (request.status === 'pending' || request.status === 'approved') &&
@@ -298,9 +298,9 @@ export function VacationRequestForm() {
                 </TableHeader>
                 <TableBody>
                   {requests.map((request) => {
-                    const _startDate = new Date(request.start_date)
-                    const _endDate = new Date(request.end_date)
-                    const _days = calculateWorkingDays(startDate, endDate)
+                    const startDate = new Date(request.start_date)
+                    const endDate = new Date(request.end_date)
+                    const days = calculateWorkingDays(startDate, endDate)
 
                     return (
                       <TableRow key={request.id}>

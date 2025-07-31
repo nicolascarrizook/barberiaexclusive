@@ -1,12 +1,13 @@
-// // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// // // // // import { Badge } from "@/components/ui/badge";
-// // // // // import { Barber, Service } from "@/types";
-// // // // // import { ChevronLeft, Clock } from "lucide-react";
-import {useEffect} from 'react';
-// // // // // import { availabilityService } from "@/services/availability.service";
-// // // // // import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Barber, Service } from "@/types";
+import { ChevronLeft, Clock } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { availabilityService } from "@/services/availability.service";
+import { useToast } from "@/hooks/use-toast";
+import { realtimeService } from "@/services/realtime.service";
 
 interface BarberSelectionProps {
   barbers: Barber[];
@@ -41,7 +42,7 @@ export function BarberSelection({
 
   // Check availability for all barbers when service or date changes
   useEffect(() => {
-    const _checkBarbersAvailability = async () => {
+    const checkBarbersAvailability = async () => {
       if (!selectedService || !selectedDate) {
         // Without service or date, show all barbers as potentially available
         setBarbersWithAvailability(
@@ -56,7 +57,7 @@ export function BarberSelection({
 
       setIsLoading(true);
       try {
-        const _barbersWithInfo = await Promise.all(
+        const barbersWithInfo = await Promise.all(
           barbers.map(async (barber): Promise<BarberAvailabilityInfo> => {
             if (!barber.barbershop_id) {
               return {
@@ -67,18 +68,18 @@ export function BarberSelection({
             }
 
             try {
-              const _dayAvailability =
+              const dayAvailability =
                 await availabilityService.getDayAvailability({
                   barber_id: barber.id,
                   barbershop_id: barber.barbershop_id,
                   date: selectedDate.toISOString().split('T')[0],
-                  service_duration: selectedService.duration,
+                  service_duration: selectedService.duration_minutes,
                 });
 
-              const _availableSlots = dayAvailability.slots.filter(
+              const availableSlots = dayAvailability.slots.filter(
                 (slot) => slot.available
               );
-              const _nextAvailable =
+              const nextAvailable =
                 availableSlots.length > 0
                   ? availableSlots[0].start.substring(0, 5)
                   : undefined;
@@ -118,6 +119,44 @@ export function BarberSelection({
 
     checkBarbersAvailability();
   }, [barbers, selectedService, selectedDate, toast]);
+
+  // Subscribe to real-time availability updates
+  useEffect(() => {
+    if (!selectedDate || !selectedService || barbers.length === 0) return;
+
+    const barberIds = barbers.map(b => b.id);
+    
+    // Subscribe to availability updates for all barbers
+    const unsubscribe = realtimeService.subscribeToAvailability(
+      barberIds,
+      {
+        onUpdate: async (update) => {
+          // Update the availability count for the specific barber
+          setBarbersWithAvailability(prev => 
+            prev.map(barber => {
+              if (barber.id === update.barberId) {
+                return {
+                  ...barber,
+                  availableSlots: update.availableSlots,
+                  isAvailable: update.availableSlots > 0,
+                };
+              }
+              return barber;
+            })
+          );
+        },
+        onStatusChange: (status) => {
+          if (status === 'error') {
+            console.error('Real-time availability connection error');
+          }
+        },
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [barbers, selectedDate, selectedService]);
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">

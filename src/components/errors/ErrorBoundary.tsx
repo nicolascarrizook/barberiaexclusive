@@ -1,6 +1,6 @@
 import React, { Component, ReactNode } from 'react';
-// // // // // import { errorLogger } from '@/utils/errorLogger';
-// // // // // import { ErrorFallback } from './ErrorFallback';
+import { errorLogger } from '@/utils/errorLogger';
+import { ErrorFallback } from './ErrorFallback';
 
 interface Props {
   children: ReactNode;
@@ -87,7 +87,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Reset error if resetKeys have changed
     if (hasError && resetKeys && prevProps.resetKeys) {
-      const _hasResetKeyChanged = resetKeys.some(
+      const hasResetKeyChanged = resetKeys.some(
         (key, idx) => key !== this.previousResetKeys[idx]
       );
 

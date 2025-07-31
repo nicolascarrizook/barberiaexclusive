@@ -1,14 +1,14 @@
-import {useEffect} from 'react';
-// // // // // import { useQuery } from '@tanstack/react-query';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { BarbershopScheduleConfig } from '@/components/owner/BarbershopScheduleConfig';
-// // // // // import { Card, CardContent } from '@/components/ui/card';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { ArrowLeft, Clock, Info } from 'lucide-react';
-// // // // // import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { barbershopService } from '@/services/barbershops.service';
+import { BarbershopScheduleConfig } from '@/components/owner/BarbershopScheduleConfig';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Clock, Info } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function BarbershopHours() {
   const { user } = useAuth();

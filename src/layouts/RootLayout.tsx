@@ -1,6 +1,6 @@
-// // // // // import { Outlet } from 'react-router-dom';
-// // // // // import { Navigation } from '@/components/layout/Navigation';
-// // // // // import { Toaster } from '@/components/ui/toaster';
+import { Outlet } from 'react-router-dom';
+import { Navigation } from '@/components/layout/Navigation';
+import { Toaster } from '@/components/ui/toaster';
 
 export function RootLayout() {
   return (

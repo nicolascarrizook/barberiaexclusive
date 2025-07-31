@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
-// // // // // import { format, differenceInDays, isAfter } from 'date-fns'
-// // // // // import { es } from 'date-fns/locale'
-// // // // // import {
+import { format, differenceInDays, isAfter } from 'date-fns'
+import { es } from 'date-fns/locale'
+import {
   Calendar,
   Check,
   X,
@@ -14,23 +14,23 @@ import React, { useState, useEffect, useMemo } from 'react'
   ChevronUp,
 } from 'lucide-react'
 
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// // // // // import { Button } from '@/components/ui/button'
-// // // // // import { Badge } from '@/components/ui/badge'
-// // // // // import { Textarea } from '@/components/ui/textarea'
-// // // // // import { Label } from '@/components/ui/label'
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert'
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-// // // // // import { Separator } from '@/components/ui/separator'
-// // // // // import { Skeleton } from '@/components/ui/skeleton'
-// // // // // import {
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-// // // // // import {
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -38,7 +38,7 @@ import React, { useState, useEffect, useMemo } from 'react'
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-// // // // // import {
+import {
   Table,
   TableBody,
   TableCell,
@@ -46,15 +46,15 @@ import React, { useState, useEffect, useMemo } from 'react'
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-// // // // // import {
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 
-// // // // // import { useAuth } from '@/hooks/useAuth'
-// // // // // import { useTimeOff } from '@/hooks/useTimeOff'
-// // // // // import { TimeOffWithBarber, TimeOffStatus } from '@/services/time-off.service'
+import { useAuth } from '@/hooks/useAuth'
+import { useTimeOff } from '@/hooks/useTimeOff'
+import { TimeOffWithBarber, TimeOffStatus } from '@/services/time-off.service'
 
 interface ApprovalDialogProps {
   request: TimeOffWithBarber | null
@@ -69,9 +69,9 @@ function ApprovalDialog({ request, type, onClose, onConfirm, submitting }: Appro
 
   if (!request || !type) return null
 
-  const _isApprove = type === 'approve'
-  const _title = isApprove ? 'Aprobar Solicitud' : 'Rechazar Solicitud'
-  const _description = isApprove
+  const isApprove = type === 'approve'
+  const title = isApprove ? 'Aprobar Solicitud' : 'Rechazar Solicitud'
+  const description = isApprove
     ? '¿Estás seguro de que deseas aprobar esta solicitud de vacaciones?'
     : 'Por favor proporciona una razón para rechazar esta solicitud.'
 
@@ -172,18 +172,18 @@ export function VacationApprovalPanel() {
 
   // Cargar solicitudes al montar el componente
   useEffect(() => {
-    const _filters = statusFilter === 'all' ? {} : { status: statusFilter }
+    const filters = statusFilter === 'all' ? {} : { status: statusFilter }
     getRequests(filters)
   }, [statusFilter, getRequests])
 
   // Cargar citas afectadas para solicitudes pendientes
   useEffect(() => {
-    const _loadAffectedAppointments = async () => {
-      const _pendingRequests = requests.filter(r => r.status === 'pending')
+    const loadAffectedAppointments = async () => {
+      const pendingRequests = requests.filter(r => r.status === 'pending')
       const appointmentsMap: Record<string, number> = {}
 
       for (const request of pendingRequests) {
-        const _count = await getAffectedAppointments(
+        const count = await getAffectedAppointments(
           request.barber_id,
           request.start_date,
           request.end_date
@@ -200,13 +200,13 @@ export function VacationApprovalPanel() {
   }, [requests, getAffectedAppointments])
 
   // Filtrar solicitudes según el estado seleccionado
-  const _filteredRequests = useMemo(() => {
+  const filteredRequests = useMemo(() => {
     if (statusFilter === 'all') return requests
     return requests.filter(r => r.status === statusFilter)
   }, [requests, statusFilter])
 
   // Agrupar solicitudes por estado para estadísticas
-  const _stats = useMemo(() => {
+  const stats = useMemo(() => {
     return {
       pending: requests.filter(r => r.status === 'pending').length,
       approved: requests.filter(r => r.status === 'approved').length,
@@ -215,17 +215,17 @@ export function VacationApprovalPanel() {
     }
   }, [requests])
 
-  const _handleApprove = (request: TimeOffWithBarber) => {
+  const handleApprove = (request: TimeOffWithBarber) => {
     setSelectedRequest(request)
     setDialogType('approve')
   }
 
-  const _handleReject = (request: TimeOffWithBarber) => {
+  const handleReject = (request: TimeOffWithBarber) => {
     setSelectedRequest(request)
     setDialogType('reject')
   }
 
-  const _handleConfirm = async (notes: string) => {
+  const handleConfirm = async (notes: string) => {
     if (!selectedRequest || !dialogType) return
 
     try {
@@ -236,7 +236,7 @@ export function VacationApprovalPanel() {
       }
 
       // Recargar solicitudes
-      const _filters = statusFilter === 'all' ? {} : { status: statusFilter }
+      const filters = statusFilter === 'all' ? {} : { status: statusFilter }
       await getRequests(filters)
 
       // Cerrar diálogo
@@ -247,8 +247,8 @@ export function VacationApprovalPanel() {
     }
   }
 
-  const _toggleRequestExpansion = (requestId: string) => {
-    const _newExpanded = new Set(expandedRequests)
+  const toggleRequestExpansion = (requestId: string) => {
+    const newExpanded = new Set(expandedRequests)
     if (newExpanded.has(requestId)) {
       newExpanded.delete(requestId)
     } else {
@@ -257,7 +257,7 @@ export function VacationApprovalPanel() {
     setExpandedRequests(newExpanded)
   }
 
-  const _getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
       pending: { variant: "secondary", label: "Pendiente" },
       approved: { variant: "default", label: "Aprobada" },
@@ -351,12 +351,12 @@ export function VacationApprovalPanel() {
           ) : (
             <div className="space-y-4">
               {filteredRequests.map((request) => {
-                const _startDate = new Date(request.start_date)
-                const _endDate = new Date(request.end_date)
-                const _days = calculateWorkingDays(startDate, endDate)
-                const _totalDays = differenceInDays(endDate, startDate) + 1
-                const _isExpanded = expandedRequests.has(request.id)
-                const _affectedCount = affectedAppointmentsMap[request.id] || 0
+                const startDate = new Date(request.start_date)
+                const endDate = new Date(request.end_date)
+                const days = calculateWorkingDays(startDate, endDate)
+                const totalDays = differenceInDays(endDate, startDate) + 1
+                const isExpanded = expandedRequests.has(request.id)
+                const affectedCount = affectedAppointmentsMap[request.id] || 0
 
                 return (
                   <Card key={request.id} className="overflow-hidden">

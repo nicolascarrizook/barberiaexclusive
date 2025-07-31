@@ -1,13 +1,13 @@
-// // // // // import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-// // // // // import { errorLogger } from '../errorLogger';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { errorLogger } from '../errorLogger';
 
 describe('ErrorLogger', () => {
   // Mock console methods
-  const _originalConsoleError = console.error;
-  const _originalConsoleWarn = console.warn;
-  const _originalConsoleGroup = console.group;
-  const _originalConsoleGroupEnd = console.groupEnd;
-  const _originalConsoleTable = console.table;
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleGroup = console.group;
+  const originalConsoleGroupEnd = console.groupEnd;
+  const originalConsoleTable = console.table;
 
   beforeEach(() => {
     // Clear session storage
@@ -37,11 +37,11 @@ describe('ErrorLogger', () => {
 
   describe('logError', () => {
     it('logs error to console in development', () => {
-      const _error = new Error('Test error');
-      const _errorInfo = { componentStack: 'Component stack trace' };
-      const _additionalContext = { userId: '123' };
+      const error = new Error('Test error');
+      const errorInfo = { componentStack: 'Component stack trace' };
+      const additionalContext = { userId: '123' };
 
-      errorLogger.logError(error, errorInfo as any, additionalContext);
+      errorLogger.logError(error, errorInfo, additionalContext);
 
       expect(console.group).toHaveBeenCalledWith(
         '🚨 Error Boundary Caught Error'
@@ -57,11 +57,11 @@ describe('ErrorLogger', () => {
     });
 
     it('stores error in session storage', () => {
-      const _error = new Error('Test error');
+      const error = new Error('Test error');
 
       errorLogger.logError(error);
 
-      const _storedErrors = errorLogger.getStoredErrors();
+      const storedErrors = errorLogger.getStoredErrors();
       expect(storedErrors).toHaveLength(1);
       expect(storedErrors[0].message).toBe('Test error');
       expect(storedErrors[0].timestamp).toBeDefined();
@@ -75,7 +75,7 @@ describe('ErrorLogger', () => {
         errorLogger.logError(new Error(`Error ${i}`));
       }
 
-      const _storedErrors = errorLogger.getStoredErrors();
+      const storedErrors = errorLogger.getStoredErrors();
       expect(storedErrors).toHaveLength(10);
       expect(storedErrors[0].message).toBe('Error 14'); // Most recent
       expect(storedErrors[9].message).toBe('Error 5'); // 10th most recent
@@ -83,7 +83,7 @@ describe('ErrorLogger', () => {
 
     it('handles session storage errors gracefully', () => {
       // Mock sessionStorage to throw error
-      const _originalSetItem = sessionStorage.setItem;
+      const originalSetItem = sessionStorage.setItem;
       sessionStorage.setItem = vi.fn().mockImplementation(() => {
         throw new Error('Storage full');
       });
@@ -104,7 +104,7 @@ describe('ErrorLogger', () => {
     it('logs to console in production mode', () => {
       vi.stubEnv('DEV', false);
 
-      const _error = new Error('Production error');
+      const error = new Error('Production error');
       errorLogger.logError(error);
 
       expect(console.error).toHaveBeenCalledWith(
@@ -119,8 +119,8 @@ describe('ErrorLogger', () => {
 
   describe('logWarning', () => {
     it('logs warning in development', () => {
-      const _message = 'Test warning';
-      const _context = { code: 'WARN001' };
+      const message = 'Test warning';
+      const context = { code: 'WARN001' };
 
       errorLogger.logWarning(message, context);
 
@@ -142,7 +142,7 @@ describe('ErrorLogger', () => {
 
   describe('getStoredErrors', () => {
     it('returns empty array when no errors stored', () => {
-      const _errors = errorLogger.getStoredErrors();
+      const errors = errorLogger.getStoredErrors();
       expect(errors).toEqual([]);
     });
 
@@ -150,7 +150,7 @@ describe('ErrorLogger', () => {
       errorLogger.logError(new Error('Error 1'));
       errorLogger.logError(new Error('Error 2'));
 
-      const _errors = errorLogger.getStoredErrors();
+      const errors = errorLogger.getStoredErrors();
       expect(errors).toHaveLength(2);
       expect(errors[0].message).toBe('Error 2'); // Most recent first
       expect(errors[1].message).toBe('Error 1');
@@ -159,7 +159,7 @@ describe('ErrorLogger', () => {
     it('handles corrupted storage data', () => {
       sessionStorage.setItem('barbershop_errors', 'invalid json');
 
-      const _errors = errorLogger.getStoredErrors();
+      const errors = errorLogger.getStoredErrors();
       expect(errors).toEqual([]);
     });
   });
@@ -177,7 +177,7 @@ describe('ErrorLogger', () => {
     });
 
     it('handles storage errors gracefully', () => {
-      const _originalRemoveItem = sessionStorage.removeItem;
+      const originalRemoveItem = sessionStorage.removeItem;
       sessionStorage.removeItem = vi.fn().mockImplementation(() => {
         throw new Error('Storage error');
       });

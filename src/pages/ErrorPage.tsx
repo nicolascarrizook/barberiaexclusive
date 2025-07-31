@@ -1,9 +1,9 @@
-// // // // // import { AlertCircle, Home, RefreshCw, Mail, Phone } from 'lucide-react';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Separator } from '@/components/ui/separator';
-// // // // // import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AlertCircle, Home, RefreshCw, Mail, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface ErrorPageProps {
   title?: string;
@@ -16,14 +16,14 @@ export function ErrorPage({
   message = 'Lo sentimos, algo salió mal. Por favor, intenta de nuevo más tarde.',
   showContact = true,
 }: ErrorPageProps) {
-  const _navigate = useNavigate();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   // Get error details from URL params if available
-  const _errorCode = searchParams.get('code');
-  const _errorType = searchParams.get('type');
+  const errorCode = searchParams.get('code');
+  const errorType = searchParams.get('type');
 
-  const _getErrorMessage = () => {
+  const getErrorMessage = () => {
     if (errorCode) {
       switch (errorCode) {
         case '500':
@@ -41,11 +41,11 @@ export function ErrorPage({
     return message;
   };
 
-  const _handleReload = () => {
+  const handleReload = () => {
     window.location.reload();
   };
 
-  const _handleGoHome = () => {
+  const handleGoHome = () => {
     navigate('/');
   };
 

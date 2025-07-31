@@ -1,5 +1,5 @@
-// // // // // import { Dashboard } from '@/components/admin/Dashboard';
-// // // // // import { Appointment } from '@/types';
+import { Dashboard } from '@/components/admin/Dashboard';
+import { Appointment } from '@/types';
 
 // Mock data - esto se reemplazará con datos de Supabase
 const mockAppointments: Appointment[] = [

@@ -1,4 +1,4 @@
-// // // // // import { Database } from './database'
+import { Database } from './database'
 
 // Extend the database types with barber_schedules table
 export interface BarberSchedulesTable {

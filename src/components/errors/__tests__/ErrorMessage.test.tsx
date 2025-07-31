@@ -1,6 +1,6 @@
-// // // // // import { describe, it, expect, vi } from 'vitest';
-// // // // // import { render, screen, fireEvent } from '@testing-library/react';
-// // // // // import { ErrorMessage } from '../ErrorMessage';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ErrorMessage } from '../ErrorMessage';
 
 describe('ErrorMessage', () => {
   it('renders error message correctly', () => {
@@ -34,10 +34,10 @@ describe('ErrorMessage', () => {
   });
 
   it('shows retry button when onRetry is provided', () => {
-    const _onRetry = vi.fn();
+    const onRetry = vi.fn();
     render(<ErrorMessage message="Error" onRetry={onRetry} />);
 
-    const _retryButton = screen.getByText('Reintentar');
+    const retryButton = screen.getByText('Reintentar');
     expect(retryButton).toBeInTheDocument();
 
     fireEvent.click(retryButton);
@@ -45,10 +45,10 @@ describe('ErrorMessage', () => {
   });
 
   it('shows dismiss button when onDismiss is provided', () => {
-    const _onDismiss = vi.fn();
+    const onDismiss = vi.fn();
     render(<ErrorMessage message="Error" onDismiss={onDismiss} />);
 
-    const _dismissButton = screen.getByText('✕');
+    const dismissButton = screen.getByText('✕');
     expect(dismissButton).toBeInTheDocument();
 
     fireEvent.click(dismissButton);
@@ -56,8 +56,8 @@ describe('ErrorMessage', () => {
   });
 
   it('shows both retry and dismiss buttons when both handlers are provided', () => {
-    const _onRetry = vi.fn();
-    const _onDismiss = vi.fn();
+    const onRetry = vi.fn();
+    const onDismiss = vi.fn();
 
     render(
       <ErrorMessage message="Error" onRetry={onRetry} onDismiss={onDismiss} />
@@ -76,7 +76,7 @@ describe('ErrorMessage', () => {
       />
     );
 
-    const _detailsSummary = screen.getByText('Ver detalles');
+    const detailsSummary = screen.getByText('Ver detalles');
     expect(detailsSummary).toBeInTheDocument();
 
     // Click to expand details
@@ -103,7 +103,7 @@ describe('ErrorMessage', () => {
   it('applies custom className', () => {
     render(<ErrorMessage message="Error" className="custom-class" />);
 
-    const _alert = screen.getByRole('alert');
+    const alert = screen.getByRole('alert');
     expect(alert).toHaveClass('custom-class');
   });
 

@@ -1,18 +1,18 @@
-// // // // // import { useState } from 'react';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { BarbershopScheduleConfig } from '@/components/owner/BarbershopScheduleConfig';
-// // // // // import { HolidayCalendar } from '@/components/schedule/HolidayCalendar';
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarbershopScheduleConfig } from '@/components/owner/BarbershopScheduleConfig';
+import { HolidayCalendar } from '@/components/schedule/HolidayCalendar';
 import CapacityManagement from '@/components/owner/CapacityManagement';
-// // // // // import { Clock, Calendar, Settings, Activity, Users, ArrowLeft } from 'lucide-react';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { useQuery } from '@tanstack/react-query';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Link } from 'react-router-dom';
-// // // // // import { ScheduleOverview } from '@/components/owner/ScheduleOverview';
+import { Clock, Calendar, Settings, Activity, Users, ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import { barbershopService } from '@/services/barbershops.service';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { ScheduleOverview } from '@/components/owner/ScheduleOverview';
 
 export function OwnerHours() {
   const { user } = useAuth();
@@ -27,7 +27,7 @@ export function OwnerHours() {
     queryKey: ['owner-barbershop', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID');
-      const _shops = await barbershopService.getByOwner(user.id);
+      const shops = await barbershopService.getByOwner(user.id);
       return shops[0]; // For now, assume one barbershop per owner
     },
     enabled: !!user?.id,

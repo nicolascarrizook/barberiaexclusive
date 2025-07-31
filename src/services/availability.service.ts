@@ -1,8 +1,8 @@
-// // // // // import { supabase } from '@/lib/supabase'
-// // // // // import { barbershopHoursService } from './barbershop-hours.service'
-// // // // // import { barberSchedulesService } from './barber-schedules.service'
-// // // // // import { timeOffService } from './time-off.service'
-// // // // // import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
+import { barbershopHoursService } from './barbershop-hours.service'
+import { barberSchedulesService } from './barber-schedules.service'
+import { timeOffService } from './time-off.service'
+import { Database } from '@/types/database'
 
 // Use database types for barber breaks
 type BarberBreaks = Database['public']['Tables']['barber_breaks']['Row'];
@@ -103,7 +103,7 @@ class AvailabilityService {
   // Cache for barbershop hours to avoid repeated database calls
   private barbershopHoursCache = new Map<
     string,
-    { data: any; timestamp: number }
+    { data: Database['public']['Tables']['barbershop_hours']['Row'] | null; timestamp: number }
   >();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
 
@@ -114,14 +114,14 @@ class AvailabilityService {
     barbershopId: string,
     dayOfWeek: Database['public']['Enums']['day_of_week']
   ) {
-    const _cacheKey = `${barbershopId}_${dayOfWeek}`;
-    const _cached = this.barbershopHoursCache.get(cacheKey);
+    const cacheKey = `${barbershopId}_${dayOfWeek}`;
+    const cached = this.barbershopHoursCache.get(cacheKey);
 
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       return cached.data;
     }
 
-    const _data = await barbershopHoursService.getDaySchedule(
+    const data = await barbershopHoursService.getDaySchedule(
       barbershopId,
       dayOfWeek
     );
@@ -151,11 +151,11 @@ class AvailabilityService {
     options: AvailabilityOptions
   ): Promise<DayAvailability[]> {
     const availability: DayAvailability[] = [];
-    const _currentDate = new Date(options.start_date);
-    const _endDate = new Date(options.end_date);
+    const currentDate = new Date(options.start_date);
+    const endDate = new Date(options.end_date);
 
     while (currentDate <= endDate) {
-      const _dayAvailability = await this.getDayAvailability({
+      const dayAvailability = await this.getDayAvailability({
         ...options,
         date: currentDate.toISOString().split('T')[0],
       });
@@ -183,65 +183,101 @@ class AvailabilityService {
       service_duration,
       slot_interval = 15,
     } = options;
-    const _dateObj = new Date(date);
-    const _dayOfWeek = dateObj.getDay();
-    const _dayOfWeekEnum = this.getDayOfWeekEnum(dayOfWeek);
+    // Force UTC parsing to avoid timezone issues
+    const dateObj = new Date(date + 'T12:00:00.000Z');
+    const dayOfWeek = dateObj.getDay();
+    const dayOfWeekEnum = this.getDayOfWeekEnum(dayOfWeek);
+    
+    // Debug logging
+    console.log('🗓️ Availability Debug:', {
+      inputDate: date,
+      dateObj: dateObj.toISOString(),
+      dayOfWeek,
+      dayOfWeekEnum,
+      dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek]
+    });
 
     // Obtener horario de la barbería (con cache)
-    const _barbershopHours = await this.getCachedBarbershopHours(
+    const barbershopHours = await this.getCachedBarbershopHours(
       barbershop_id,
       dayOfWeekEnum
     );
 
-    // Si la barbería está cerrada
-    if (!barbershopHours || barbershopHours.is_closed) {
-      return {
-        date,
-        is_available: false,
-        slots: [],
-      };
-    }
-
     // Obtener horario específico del barbero
-    const _barberSchedule = await barberSchedulesService.getDaySchedule(
+    const barberSchedule = await barberSchedulesService.getDaySchedule(
       barber_id,
       dayOfWeek
     );
+    
+    // Debug logging for barber schedule
+    console.log('👨‍💼 Barber Schedule Debug:', {
+      barber_id,
+      dayOfWeek,
+      dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek],
+      barberSchedule: barberSchedule ? {
+        day_of_week: barberSchedule.day_of_week,
+        is_working: barberSchedule.is_working,
+        start_time: barberSchedule.start_time,
+        end_time: barberSchedule.end_time,
+        break_start: barberSchedule.break_start,
+        break_end: barberSchedule.break_end
+      } : null
+    });
 
-    // Si el barbero no está trabajando ese día
-    if (!barberSchedule || !barberSchedule.is_working) {
+    // Determinar horarios base para generar slots (usar barbería si el barbero no tiene horario específico)
+    let baseOpenTime = '09:00';
+    let baseCloseTime = '18:00';
+    
+    if (barbershopHours && !barbershopHours.is_closed) {
+      baseOpenTime = barbershopHours.open_time;
+      baseCloseTime = barbershopHours.close_time;
+    }
+    
+    if (barberSchedule && barberSchedule.is_working) {
+      baseOpenTime = barberSchedule.start_time!;
+      baseCloseTime = barberSchedule.end_time!;
+    }
+
+    // Si la barbería está cerrada
+    if (!barbershopHours || barbershopHours.is_closed) {
+      const closedSlots = this.generateClosedSlots(baseOpenTime, baseCloseTime, slot_interval, 'closed', 'Barbería cerrada');
       return {
         date,
         is_available: false,
-        slots: [],
+        slots: closedSlots,
+      };
+    }
+
+    // Si el barbero no está trabajando ese día
+    if (!barberSchedule || !barberSchedule.is_working) {
+      const unavailableSlots = this.generateClosedSlots(baseOpenTime, baseCloseTime, slot_interval, 'outside_hours', 'Barbero no trabaja este día');
+      return {
+        date,
+        is_available: false,
+        slots: unavailableSlots,
       };
     }
 
     // Verificar si el barbero tiene vacaciones
-    const _timeOff = await timeOffService.getActiveTimeOff(barber_id, date);
+    const timeOff = await timeOffService.getActiveTimeOff(barber_id, date);
     if (timeOff.length > 0) {
+      const timeOffReason = timeOff[0].reason || 'Vacaciones';
+      const timeOffSlots = this.generateClosedSlots(baseOpenTime, baseCloseTime, slot_interval, 'time_off', timeOffReason);
       return {
         date,
         is_available: false,
-        slots: [
-          {
-            start: barberSchedule.start_time!,
-            end: barberSchedule.end_time!,
-            available: false,
-            reason: 'time_off',
-          },
-        ],
+        slots: timeOffSlots,
       };
     }
 
     // Obtener citas existentes
-    const _appointments = await this.getBarberAppointments(barber_id, date);
+    const appointments = await this.getBarberAppointments(barber_id, date);
 
     // Obtener breaks del barbero (específicos para esa fecha)
-    const _breaks = await this.getBarberBreaks(barber_id, date);
+    const breaks = await this.getBarberBreaks(barber_id, date);
 
     // Generar slots disponibles usando el horario específico del barbero
-    const _slots = this.generateTimeSlots({
+    const slots = this.generateTimeSlots({
       date,
       openTime: barberSchedule.start_time!,
       closeTime: barberSchedule.end_time!,
@@ -282,16 +318,16 @@ class AvailabilityService {
     endTime: string
   ): Promise<{ available: boolean; reason?: string }> {
     // Verificar horario de la barbería
-    const _dateObj = new Date(`${date}T${startTime}`);
-    const _isOpen = await barbershopHoursService.isOpen(barbershopId, dateObj);
+    const dateObj = new Date(`${date}T${startTime}`);
+    const isOpen = await barbershopHoursService.isOpen(barbershopId, dateObj);
 
     if (!isOpen) {
       return { available: false, reason: 'Barbería cerrada en ese horario' };
     }
 
     // Verificar si el barbero está trabajando ese día
-    const _dayOfWeek = dateObj.getDay();
-    const _barberSchedule = await barberSchedulesService.getDaySchedule(
+    const dayOfWeek = dateObj.getDay();
+    const barberSchedule = await barberSchedulesService.getDaySchedule(
       barberId,
       dayOfWeek
     );
@@ -316,10 +352,10 @@ class AvailabilityService {
 
     // Verificar conflicto con el break del barbero en su horario
     if (barberSchedule.break_start && barberSchedule.break_end) {
-      const _requestedStart = this.timeToMinutes(startTime);
-      const _requestedEnd = this.timeToMinutes(endTime);
-      const _breakStart = this.timeToMinutes(barberSchedule.break_start);
-      const _breakEnd = this.timeToMinutes(barberSchedule.break_end);
+      const requestedStart = this.timeToMinutes(startTime);
+      const requestedEnd = this.timeToMinutes(endTime);
+      const breakStart = this.timeToMinutes(barberSchedule.break_start);
+      const breakEnd = this.timeToMinutes(barberSchedule.break_end);
 
       if (requestedStart < breakEnd && requestedEnd > breakStart) {
         return {
@@ -330,13 +366,13 @@ class AvailabilityService {
     }
 
     // Verificar vacaciones
-    const _timeOff = await timeOffService.getActiveTimeOff(barberId, date);
+    const timeOff = await timeOffService.getActiveTimeOff(barberId, date);
     if (timeOff.length > 0) {
       return { available: false, reason: 'El barbero está de vacaciones' };
     }
 
     // Verificar conflictos con otras citas
-    const _hasConflict = await this.checkAppointmentConflict(
+    const hasConflict = await this.checkAppointmentConflict(
       barberId,
       date,
       startTime,
@@ -347,7 +383,7 @@ class AvailabilityService {
     }
 
     // Verificar breaks específicos del barbero para esa fecha
-    const _hasBreak = await this.checkBreakConflict(
+    const hasBreak = await this.checkBreakConflict(
       barberId,
       date,
       startTime,
@@ -368,7 +404,7 @@ class AvailabilityService {
    */
   async createBarberBreak(breakRequest: BreakRequest): Promise<BarberBreaks> {
     // Validar que no haya citas en ese horario
-    const _hasAppointment = await this.checkAppointmentConflict(
+    const hasAppointment = await this.checkAppointmentConflict(
       breakRequest.barber_id,
       breakRequest.date,
       breakRequest.start_time,
@@ -382,9 +418,9 @@ class AvailabilityService {
     }
 
     // Validar que el break esté dentro del horario de trabajo del barbero
-    const _dateObj = new Date(breakRequest.date);
-    const _dayOfWeek = dateObj.getDay();
-    const _barberSchedule = await barberSchedulesService.getDaySchedule(
+    const dateObj = new Date(breakRequest.date);
+    const dayOfWeek = dateObj.getDay();
+    const barberSchedule = await barberSchedulesService.getDaySchedule(
       breakRequest.barber_id,
       dayOfWeek
     );
@@ -457,8 +493,8 @@ class AvailabilityService {
     barberId: string,
     date: string
   ): Promise<Appointment[]> {
-    const _startOfDay = `${date}T00:00:00`;
-    const _endOfDay = `${date}T23:59:59`;
+    const startOfDay = `${date}T00:00:00`;
+    const endOfDay = `${date}T23:59:59`;
 
     const { data, error } = await supabase
       .from('appointments')
@@ -466,7 +502,7 @@ class AvailabilityService {
       .eq('barber_id', barberId)
       .gte('start_time', startOfDay)
       .lte('start_time', endOfDay)
-      .in('status', ['scheduled', 'confirmed', 'in_progress'])
+      .in('status', ['pending', 'confirmed', 'in_progress'])
       .order('start_time');
 
     if (error) throw new Error(error.message);
@@ -481,8 +517,8 @@ class AvailabilityService {
     barberIds: string[],
     date: string
   ): Promise<Map<string, Appointment[]>> {
-    const _startOfDay = `${date}T00:00:00`;
-    const _endOfDay = `${date}T23:59:59`;
+    const startOfDay = `${date}T00:00:00`;
+    const endOfDay = `${date}T23:59:59`;
 
     const { data, error } = await supabase
       .from('appointments')
@@ -490,14 +526,14 @@ class AvailabilityService {
       .in('barber_id', barberIds)
       .gte('start_time', startOfDay)
       .lte('start_time', endOfDay)
-      .in('status', ['scheduled', 'confirmed', 'in_progress'])
+      .in('status', ['pending', 'confirmed', 'in_progress'])
       .order('barber_id', { ascending: true })
       .order('start_time', { ascending: true });
 
     if (error) throw new Error(error.message);
 
     // Group appointments by barber_id
-    const _appointmentsByBarber = new Map<string, Appointment[]>();
+    const appointmentsByBarber = new Map<string, Appointment[]>();
 
     // Initialize with empty arrays for all barbers
     barberIds.forEach((barberId) => {
@@ -507,7 +543,7 @@ class AvailabilityService {
     // Group the appointments
     if (data) {
       data.forEach((appointment) => {
-        const _existing = appointmentsByBarber.get(appointment.barber_id) || [];
+        const existing = appointmentsByBarber.get(appointment.barber_id) || [];
         existing.push(appointment);
         appointmentsByBarber.set(appointment.barber_id, existing);
       });
@@ -525,14 +561,14 @@ class AvailabilityService {
     startTime: string,
     endTime: string
   ): Promise<boolean> {
-    const _start = `${date}T${startTime}`;
-    const _end = `${date}T${endTime}`;
+    const start = `${date}T${startTime}`;
+    const end = `${date}T${endTime}`;
 
     const { data, error } = await supabase
       .from('appointments')
       .select('id')
       .eq('barber_id', barberId)
-      .in('status', ['scheduled', 'confirmed', 'in_progress'])
+      .in('status', ['pending', 'confirmed', 'in_progress'])
       .or(`start_time.lt.${end},end_time.gt.${start}`)
       .limit(1);
 
@@ -590,23 +626,25 @@ class AvailabilityService {
     } = options;
 
     // Convertir horarios a minutos para facilitar cálculos
-    const _openMinutes = this.timeToMinutes(openTime);
-    const _closeMinutes = this.timeToMinutes(closeTime);
-    const _breakStartMinutes = breakStart
+    const openMinutes = this.timeToMinutes(openTime);
+    const closeMinutes = this.timeToMinutes(closeTime);
+    const breakStartMinutes = breakStart
       ? this.timeToMinutes(breakStart)
       : null;
-    const _breakEndMinutes = breakEnd ? this.timeToMinutes(breakEnd) : null;
+    const breakEndMinutes = breakEnd ? this.timeToMinutes(breakEnd) : null;
 
     // Generar slots desde apertura hasta cierre
     let currentMinutes = openMinutes;
 
     while (currentMinutes + serviceDuration <= closeMinutes) {
-      const _slotStart = this.minutesToTime(currentMinutes);
-      const _slotEnd = this.minutesToTime(currentMinutes + serviceDuration);
+      const slotStart = this.minutesToTime(currentMinutes);
+      const slotEnd = this.minutesToTime(currentMinutes + serviceDuration);
 
       // Verificar si el slot está disponible
       let available = true;
       let reason: TimeSlot['reason'] = undefined;
+      let reasonText: string | undefined = undefined;
+      const appointmentInfo: { customerName?: string; serviceName?: string } | undefined = undefined;
 
       // Verificar horario de almuerzo de la barbería
       if (breakStartMinutes !== null && breakEndMinutes !== null) {
@@ -616,15 +654,16 @@ class AvailabilityService {
         ) {
           available = false;
           reason = 'break';
+          reasonText = 'Horario de descanso';
         }
       }
 
-      // Verificar citas existentes
-      const _appointmentConflict = appointments.some((apt) => {
-        const _aptStart =
+      // Verificar citas existentes (obtener información de la cita si existe)
+      const conflictingAppointment = appointments.find((apt) => {
+        const aptStart =
           new Date(apt.start_time).getHours() * 60 +
           new Date(apt.start_time).getMinutes();
-        const _aptEnd =
+        const aptEnd =
           new Date(apt.end_time).getHours() * 60 +
           new Date(apt.end_time).getMinutes();
         return (
@@ -632,15 +671,18 @@ class AvailabilityService {
         );
       });
 
-      if (appointmentConflict) {
+      if (conflictingAppointment) {
         available = false;
         reason = 'appointment';
+        reasonText = 'Cita reservada';
+        // TODO: Aquí podrías obtener información del cliente si es necesario
+        // appointmentInfo = { customerName: 'Cliente', serviceName: 'Servicio' };
       }
 
       // Verificar breaks del barbero
-      const _breakConflict = barberBreaks.some((brk) => {
-        const _brkStart = this.timeToMinutes(brk.start_time);
-        const _brkEnd = this.timeToMinutes(brk.end_time);
+      const breakConflict = barberBreaks.some((brk) => {
+        const brkStart = this.timeToMinutes(brk.start_time);
+        const brkEnd = this.timeToMinutes(brk.end_time);
         return (
           currentMinutes < brkEnd && currentMinutes + serviceDuration > brkStart
         );
@@ -649,6 +691,7 @@ class AvailabilityService {
       if (breakConflict) {
         available = false;
         reason = 'break';
+        reasonText = 'Descanso personal';
       }
 
       slots.push({
@@ -676,8 +719,8 @@ class AvailabilityService {
    * Convierte minutos a formato HH:MM
    */
   private minutesToTime(minutes: number): string {
-    const _hours = Math.floor(minutes / 60);
-    const _mins = minutes % 60;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   }
 
@@ -700,6 +743,39 @@ class AvailabilityService {
   }
 
   /**
+   * Genera slots no disponibles para mostrar en la UI con motivo
+   */
+  private generateClosedSlots(
+    openTime: string,
+    closeTime: string,
+    slotInterval: number,
+    reason: TimeSlot['reason'],
+    reasonText: string
+  ): TimeSlot[] {
+    const slots: TimeSlot[] = [];
+    const openMinutes = this.timeToMinutes(openTime);
+    const closeMinutes = this.timeToMinutes(closeTime);
+    
+    let currentMinutes = openMinutes;
+    
+    while (currentMinutes < closeMinutes) {
+      const slotStart = this.minutesToTime(currentMinutes);
+      const slotEnd = this.minutesToTime(Math.min(currentMinutes + slotInterval, closeMinutes));
+      
+      slots.push({
+        start: slotStart,
+        end: slotEnd,
+        available: false,
+        reason,
+      });
+      
+      currentMinutes += slotInterval;
+    }
+    
+    return slots;
+  }
+
+  /**
    * Obtiene el siguiente slot disponible
    */
   async getNextAvailableSlot(
@@ -708,11 +784,11 @@ class AvailabilityService {
     serviceDuration: number,
     fromDate?: string
   ): Promise<{ date: string; time: string } | null> {
-    const _startDate = fromDate || new Date().toISOString().split('T')[0];
-    const _endDate = new Date();
+    const startDate = fromDate || new Date().toISOString().split('T')[0];
+    const endDate = new Date();
     endDate.setDate(endDate.getDate() + 30); // Buscar en los próximos 30 días
 
-    const _availability = await this.getBarberAvailability({
+    const availability = await this.getBarberAvailability({
       barber_id: barberId,
       barbershop_id: barbershopId,
       start_date: startDate,
@@ -721,7 +797,7 @@ class AvailabilityService {
     });
 
     for (const day of availability) {
-      const _availableSlot = day.slots.find((slot) => slot.available);
+      const availableSlot = day.slots.find((slot) => slot.available);
       if (availableSlot) {
         return {
           date: day.date,
@@ -747,7 +823,7 @@ class AvailabilityService {
     booked_slots: number;
     availability_percentage: number;
   }> {
-    const _availability = await this.getBarberAvailability({
+    const availability = await this.getBarberAvailability({
       barber_id: barberId,
       barbershop_id: barbershopId,
       start_date: startDate,
@@ -763,8 +839,8 @@ class AvailabilityService {
       availableSlots += day.slots.filter((slot) => slot.available).length;
     });
 
-    const _bookedSlots = totalSlots - availableSlots;
-    const _availabilityPercentage =
+    const bookedSlots = totalSlots - availableSlots;
+    const availabilityPercentage =
       totalSlots > 0 ? (availableSlots / totalSlots) * 100 : 0;
 
     return {
@@ -796,7 +872,7 @@ class AvailabilityService {
     }
 
     // Por ahora almacenar temporalmente
-    const _storageKey = `capacity_${config.barbershop_id}_${config.time_slot}`;
+    const storageKey = `capacity_${config.barbershop_id}_${config.time_slot}`;
     localStorage.setItem(storageKey, JSON.stringify(config));
   }
 
@@ -810,10 +886,10 @@ class AvailabilityService {
 
     // Buscar todas las configuraciones en localStorage
     for (let i = 0; i < localStorage.length; i++) {
-      const _key = localStorage.key(i);
+      const key = localStorage.key(i);
       if (key?.startsWith(`capacity_${barbershopId}_`)) {
         try {
-          const _config = JSON.parse(localStorage.getItem(key) || '{}');
+          const config = JSON.parse(localStorage.getItem(key) || '{}');
           configs.push(config);
         } catch (error) {
           console.warn(
@@ -844,7 +920,7 @@ class AvailabilityService {
     }
 
     // Validar formato de horarios
-    const _timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (
       !timeRegex.test(config.start_time) ||
       !timeRegex.test(config.end_time)
@@ -853,7 +929,7 @@ class AvailabilityService {
     }
 
     // Por ahora almacenar temporalmente
-    const _storageKey = `peak_${config.barbershop_id}_${config.day_of_week}_${config.start_time}`;
+    const storageKey = `peak_${config.barbershop_id}_${config.day_of_week}_${config.start_time}`;
     localStorage.setItem(storageKey, JSON.stringify(config));
   }
 
@@ -865,10 +941,10 @@ class AvailabilityService {
     const configs: PeakHourConfig[] = [];
 
     for (let i = 0; i < localStorage.length; i++) {
-      const _key = localStorage.key(i);
+      const key = localStorage.key(i);
       if (key?.startsWith(`peak_${barbershopId}_`)) {
         try {
-          const _config = JSON.parse(localStorage.getItem(key) || '{}');
+          const config = JSON.parse(localStorage.getItem(key) || '{}');
           configs.push(config);
         } catch (error) {
           console.warn(
@@ -889,8 +965,8 @@ class AvailabilityService {
     barbershopId: string,
     date: string
   ): Promise<CapacityStats> {
-    const _capacityConfigs = await this.getCapacityConfig(barbershopId);
-    const _peakHours = await this.getPeakHourConfig(barbershopId);
+    const capacityConfigs = await this.getCapacityConfig(barbershopId);
+    const peakHours = await this.getPeakHourConfig(barbershopId);
 
     // Obtener todos los barberos de la barbería
     const { data: barbers } = await supabase
@@ -908,11 +984,11 @@ class AvailabilityService {
 
     // Calcular capacidad total y reservas actuales
     for (const barber of barbers) {
-      const _appointments = await this.getBarberAppointments(barber.id, date);
+      const appointments = await this.getBarberAppointments(barber.id, date);
       currentBookings += appointments.length;
 
       // Capacidad base (slots disponibles por barbero)
-      const _dayAvailability = await this.getDayAvailability({
+      const dayAvailability = await this.getDayAvailability({
         barber_id: barber.id,
         barbershop_id: barbershopId,
         date,
@@ -922,8 +998,8 @@ class AvailabilityService {
       totalCapacity += dayAvailability.slots.length;
     }
 
-    const _availableSlots = totalCapacity - currentBookings;
-    const _utilizationPercentage =
+    const availableSlots = totalCapacity - currentBookings;
+    const utilizationPercentage =
       totalCapacity > 0 ? (currentBookings / totalCapacity) * 100 : 0;
 
     // Determinar nivel de riesgo
@@ -950,8 +1026,8 @@ class AvailabilityService {
     endDate: string
   ): Promise<AvailabilityHeatmapData[]> {
     const heatmapData: AvailabilityHeatmapData[] = [];
-    const _currentDate = new Date(startDate);
-    const _endDateObj = new Date(endDate);
+    const currentDate = new Date(startDate);
+    const endDateObj = new Date(endDate);
 
     // Obtener barberos activos
     const { data: barbers } = await supabase
@@ -963,17 +1039,17 @@ class AvailabilityService {
     if (!barbers) return heatmapData;
 
     while (currentDate <= endDateObj) {
-      const _dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = currentDate.toISOString().split('T')[0];
 
       // Generar datos por hora (9 AM a 8 PM)
       for (let hour = 9; hour <= 20; hour++) {
-        const _hourStr = `${hour.toString().padStart(2, '0')}:00`;
+        const hourStr = `${hour.toString().padStart(2, '0')}:00`;
         let totalCapacity = 0;
         let totalBookings = 0;
 
         // Calcular para cada barbero
         for (const barber of barbers) {
-          const _dayAvailability = await this.getDayAvailability({
+          const dayAvailability = await this.getDayAvailability({
             barber_id: barber.id,
             barbershop_id: barbershopId,
             date: dateStr,
@@ -981,8 +1057,8 @@ class AvailabilityService {
           });
 
           // Contar slots en esta hora
-          const _hourSlots = dayAvailability.slots.filter((slot) => {
-            const _slotHour = parseInt(slot.start.split(':')[0]);
+          const hourSlots = dayAvailability.slots.filter((slot) => {
+            const slotHour = parseInt(slot.start.split(':')[0]);
             return slotHour === hour;
           });
 
@@ -994,7 +1070,7 @@ class AvailabilityService {
 
         // Determinar nivel de disponibilidad
         let availabilityLevel: 'high' | 'medium' | 'low' | 'full' = 'high';
-        const _utilizationRate =
+        const utilizationRate =
           totalCapacity > 0 ? totalBookings / totalCapacity : 0;
 
         if (utilizationRate >= 1) availabilityLevel = 'full';
@@ -1037,7 +1113,7 @@ class AvailabilityService {
       .eq('barbershop_id', barbershopId)
       .gte('start_time', `${startDate}T00:00:00`)
       .lte('start_time', `${endDate}T23:59:59`)
-      .in('status', ['scheduled', 'confirmed', 'completed']);
+      .in('status', ['pending', 'confirmed', 'completed']);
 
     if (!appointments) {
       throw new Error('No se pudieron obtener las citas');
@@ -1055,16 +1131,16 @@ class AvailabilityService {
     }
 
     // Calcular estadísticas por barbero
-    const _barberStats = barbers
+    const barberStats = barbers
       .map((barber) => {
-        const _barberAppointments = appointments.filter(
+        const barberAppointments = appointments.filter(
           (apt) => apt.barber_id === barber.id
         );
-        const _profile = barber.profiles as any;
+        const profile = barber.profiles as Database['public']['Tables']['profiles']['Row'] | null;
 
         return {
           barber_id: barber.id,
-          name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim(),
+          name: profile?.full_name || 'Unknown Barber',
           appointments: barberAppointments.length,
           availability_rate: 0, // Se calcularía con más detalle en implementación real
         };
@@ -1074,23 +1150,23 @@ class AvailabilityService {
     // Encontrar horas pico (análisis simplificado)
     const hourCounts: { [hour: string]: number } = {};
     appointments.forEach((apt) => {
-      const _hour = new Date(apt.start_time).getHours();
-      const _hourKey = `${hour}:00`;
+      const hour = new Date(apt.start_time).getHours();
+      const hourKey = `${hour}:00`;
       hourCounts[hourKey] = (hourCounts[hourKey] || 0) + 1;
     });
 
-    const _peakHours = Object.entries(hourCounts)
+    const peakHours = Object.entries(hourCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([hour]) => hour);
 
     // Calcular slots disponibles totales (estimación)
-    const _totalDays = Math.ceil(
+    const totalDays = Math.ceil(
       (new Date(endDate).getTime() - new Date(startDate).getTime()) /
         (1000 * 60 * 60 * 24)
     );
-    const _estimatedTotalSlots = barbers.length * totalDays * 16; // ~16 slots por día por barbero
-    const _occupancyRate =
+    const estimatedTotalSlots = barbers.length * totalDays * 16; // ~16 slots por día por barbero
+    const occupancyRate =
       estimatedTotalSlots > 0
         ? (appointments.length / estimatedTotalSlots) * 100
         : 0;
@@ -1118,14 +1194,14 @@ class AvailabilityService {
     affected_appointments: number;
     recommendations: string[];
   }> {
-    const _currentStats = await this.getCapacityStats(barbershopId, date);
+    const currentStats = await this.getCapacityStats(barbershopId, date);
 
     // Simular nueva capacidad (lógica simplificada)
-    const _currentCapacity = currentStats.total_capacity;
-    const _capacityChange = newConfig.max_capacity - currentCapacity / 10; // Estimación
-    const _newCapacity = Math.max(0, currentCapacity + capacityChange);
+    const currentCapacity = currentStats.total_capacity;
+    const capacityChange = newConfig.max_capacity - currentCapacity / 10; // Estimación
+    const newCapacity = Math.max(0, currentCapacity + capacityChange);
 
-    const _impactPercentage =
+    const impactPercentage =
       currentCapacity > 0
         ? ((newCapacity - currentCapacity) / currentCapacity) * 100
         : 0;
@@ -1177,29 +1253,29 @@ class AvailabilityService {
     } = options;
 
     // Batch fetch appointments for all barbers
-    const _appointmentsByBarber = await this.getMultipleBarberAppointments(
+    const appointmentsByBarber = await this.getMultipleBarberAppointments(
       barber_ids,
       date
     );
 
     // Batch fetch barber schedules
-    const _dateObj = new Date(date);
-    const _dayOfWeek = dateObj.getDay();
-    const _dayOfWeekEnum = this.getDayOfWeekEnum(dayOfWeek);
+    const dateObj = new Date(date);
+    const dayOfWeek = dateObj.getDay();
+    const dayOfWeekEnum = this.getDayOfWeekEnum(dayOfWeek);
 
     // Get barbershop hours once (cached)
-    const _barbershopHours = await this.getCachedBarbershopHours(
+    const barbershopHours = await this.getCachedBarbershopHours(
       barbershop_id,
       dayOfWeekEnum
     );
 
-    const _results = await Promise.all(
+    const results = await Promise.all(
       barber_ids.map(async (barber_id) => {
         // Use pre-fetched appointments
-        const _appointments = appointmentsByBarber.get(barber_id) || [];
+        const appointments = appointmentsByBarber.get(barber_id) || [];
 
         // Get barber schedule
-        const _barberSchedule = await barberSchedulesService.getDaySchedule(
+        const barberSchedule = await barberSchedulesService.getDaySchedule(
           barber_id,
           dayOfWeek
         );
@@ -1221,7 +1297,7 @@ class AvailabilityService {
         }
 
         // Check time off
-        const _timeOff = await timeOffService.getActiveTimeOff(barber_id, date);
+        const timeOff = await timeOffService.getActiveTimeOff(barber_id, date);
         if (timeOff.length > 0) {
           return {
             barber_id,
@@ -1241,10 +1317,10 @@ class AvailabilityService {
         }
 
         // Get breaks
-        const _breaks = await this.getBarberBreaks(barber_id, date);
+        const breaks = await this.getBarberBreaks(barber_id, date);
 
         // Generate slots
-        const _slots = this.generateTimeSlots({
+        const slots = this.generateTimeSlots({
           date,
           openTime: barberSchedule.start_time!,
           closeTime: barberSchedule.end_time!,
@@ -1339,26 +1415,25 @@ class AvailabilityService {
     if (error) throw new Error(error.message);
     if (!barbers || barbers.length === 0) return [];
 
-    const _stats = await Promise.all(
+    const stats = await Promise.all(
       barbers.map(async (barber) => {
-        const _profile = barber.profiles as any;
-        const _name =
-          `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
+        const profile = barber.profiles as Database['public']['Tables']['profiles']['Row'] | null;
+        const name = profile?.full_name || 'Unknown Barber';
 
         // Obtener disponibilidad del barbero
-        const _dayAvailability = await this.getDayAvailability({
+        const dayAvailability = await this.getDayAvailability({
           barber_id: barber.id,
           barbershop_id,
           date,
           service_duration: 30, // Usar 30 minutos como referencia
         });
 
-        const _totalSlots = dayAvailability.slots.length;
-        const _bookedSlots = dayAvailability.slots.filter(
+        const totalSlots = dayAvailability.slots.length;
+        const bookedSlots = dayAvailability.slots.filter(
           (slot) => !slot.available && slot.reason === 'appointment'
         ).length;
 
-        const _occupancyRate =
+        const occupancyRate =
           totalSlots > 0 ? (bookedSlots / totalSlots) * 100 : 0;
 
         return {
@@ -1412,11 +1487,11 @@ class AvailabilityService {
         .single();
 
       if (existingBreak) {
-        const _startTime = updates.start_time || existingBreak.start_time;
-        const _endTime = updates.end_time || existingBreak.end_time;
-        const _date = updates.date || existingBreak.date;
+        const startTime = updates.start_time || existingBreak.start_time;
+        const endTime = updates.end_time || existingBreak.end_time;
+        const date = updates.date || existingBreak.date;
 
-        const _hasAppointment = await this.checkAppointmentConflict(
+        const hasAppointment = await this.checkAppointmentConflict(
           existingBreak.barber_id,
           date,
           startTime!,
@@ -1459,11 +1534,11 @@ class AvailabilityService {
     breaks: Array<{ start: string; end: string; reason?: string }>;
     appointments: Array<{ start: string; end: string; id: string }>;
   }> {
-    const _dateObj = new Date(date);
-    const _dayOfWeek = dateObj.getDay();
+    const dateObj = new Date(date);
+    const dayOfWeek = dateObj.getDay();
 
     // Obtener horario del barbero
-    const _barberSchedule = await barberSchedulesService.getDaySchedule(
+    const barberSchedule = await barberSchedulesService.getDaySchedule(
       barberId,
       dayOfWeek
     );
@@ -1479,7 +1554,7 @@ class AvailabilityService {
     }
 
     // Verificar vacaciones
-    const _timeOff = await timeOffService.getActiveTimeOff(barberId, date);
+    const timeOff = await timeOffService.getActiveTimeOff(barberId, date);
 
     if (timeOff.length > 0) {
       return {
@@ -1495,10 +1570,10 @@ class AvailabilityService {
     }
 
     // Obtener breaks específicos para esa fecha
-    const _breaks = await this.getBarberBreaks(barberId, date);
+    const breaks = await this.getBarberBreaks(barberId, date);
 
     // Obtener citas existentes
-    const _appointments = await this.getBarberAppointments(barberId, date);
+    const appointments = await this.getBarberAppointments(barberId, date);
 
     return {
       is_working: true,
@@ -1534,4 +1609,4 @@ class AvailabilityService {
   }
 }
 
-export const _availabilityService = new AvailabilityService();
+export const availabilityService = new AvailabilityService();

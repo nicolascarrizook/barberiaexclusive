@@ -1,6 +1,7 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
+import { HolidayCustomHours } from './holidays.service'
 
 type WorkingHours = Database['public']['Tables']['working_hours']['Row'];
 type SpecialDates = Database['public']['Tables']['special_dates']['Row'];
@@ -136,8 +137,8 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
     barberId: string,
     date: string
   ): Promise<DailySchedule> {
-    const _dateObj = new Date(date);
-    const _dayOfWeek = this.getDayOfWeekEnum(dateObj.getDay());
+    const dateObj = new Date(date);
+    const dayOfWeek = this.getDayOfWeekEnum(dateObj.getDay());
 
     // Check for special date override
     const { data: specialDate } = await supabase
@@ -167,7 +168,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
 
       // Handle custom hours
       if (specialDate.custom_hours) {
-        const _customHours = specialDate.custom_hours as any;
+        const customHours = specialDate.custom_hours as HolidayCustomHours;
         const blocks: BarberScheduleBlock[] = [];
 
         if (customHours.start && customHours.end) {
@@ -181,7 +182,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
 
         // Add breaks if defined
         if (customHours.breaks && Array.isArray(customHours.breaks)) {
-          customHours.breaks.forEach((breakPeriod: any) => {
+          customHours.breaks.forEach((breakPeriod) => {
             blocks.push({
               start_time: breakPeriod.start,
               end_time: breakPeriod.end,
@@ -250,7 +251,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
 
     // Add work block after break or full day
     if (workingHours.start_time && workingHours.end_time) {
-      const _startTime = workingHours.break_end || workingHours.start_time;
+      const startTime = workingHours.break_end || workingHours.start_time;
       blocks.push({
         start_time: startTime,
         end_time: workingHours.end_time,
@@ -279,8 +280,8 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
     endTime: string
   ): Promise<ScheduleConflict> {
     // Check appointments
-    const _startDateTime = `${date}T${startTime}`;
-    const _endDateTime = `${date}T${endTime}`;
+    const startDateTime = `${date}T${startTime}`;
+    const endDateTime = `${date}T${endTime}`;
 
     const { data: appointments, error: appointmentError } = await supabase
       .from('appointments')
@@ -288,16 +289,16 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
       .eq('barber_id', barberId)
       .gte('start_time', `${date}T00:00:00`)
       .lte('start_time', `${date}T23:59:59`)
-      .in('status', ['scheduled', 'confirmed', 'in_progress']);
+      .in('status', ['pending', 'confirmed', 'in_progress']);
 
     if (appointmentError) this.handleError(appointmentError);
 
     // Check for conflicts
-    const _hasAppointmentConflict = appointments?.some((apt) => {
-      const _aptStart = new Date(apt.start_time);
-      const _aptEnd = new Date(apt.end_time);
-      const _checkStart = new Date(startDateTime);
-      const _checkEnd = new Date(endDateTime);
+    const hasAppointmentConflict = appointments?.some((apt) => {
+      const aptStart = new Date(apt.start_time);
+      const aptEnd = new Date(apt.end_time);
+      const checkStart = new Date(startDateTime);
+      const checkEnd = new Date(endDateTime);
 
       return checkStart < aptEnd && checkEnd > aptStart;
     });
@@ -311,7 +312,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
     }
 
     // Check if within working hours
-    const _schedule = await this.getEffectiveSchedule(barberId, date);
+    const schedule = await this.getEffectiveSchedule(barberId, date);
 
     if (!schedule.is_working) {
       return {
@@ -322,7 +323,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
     }
 
     // Check if time slot is within available blocks
-    const _isWithinAvailableTime = schedule.blocks.some((block) => {
+    const isWithinAvailableTime = schedule.blocks.some((block) => {
       if (block.block_type !== 'available') return false;
       return startTime >= block.start_time && endTime <= block.end_time;
     });
@@ -398,7 +399,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
     sourceBarberId: string,
     targetBarberId: string
   ): Promise<void> {
-    const _sourceSchedule = await this.getWeeklySchedule(sourceBarberId);
+    const sourceSchedule = await this.getWeeklySchedule(sourceBarberId);
 
     for (const [day, schedule] of Object.entries(sourceSchedule)) {
       if (schedule) {
@@ -422,7 +423,7 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
     serviceDuration: number,
     slotInterval: number = 15
   ): Promise<Array<{ start: string; end: string }>> {
-    const _schedule = await this.getEffectiveSchedule(barberId, date);
+    const schedule = await this.getEffectiveSchedule(barberId, date);
     const slots: Array<{ start: string; end: string }> = [];
 
     if (!schedule.is_working) return slots;
@@ -431,14 +432,14 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
       if (block.block_type !== 'available') continue;
 
       let currentTime = this.timeToMinutes(block.start_time);
-      const _endTime = this.timeToMinutes(block.end_time);
+      const endTime = this.timeToMinutes(block.end_time);
 
       while (currentTime + serviceDuration <= endTime) {
-        const _slotStart = this.minutesToTime(currentTime);
-        const _slotEnd = this.minutesToTime(currentTime + serviceDuration);
+        const slotStart = this.minutesToTime(currentTime);
+        const slotEnd = this.minutesToTime(currentTime + serviceDuration);
 
         // Check for conflicts
-        const _conflict = await this.checkScheduleConflict(
+        const conflict = await this.checkScheduleConflict(
           barberId,
           date,
           slotStart,
@@ -468,8 +469,8 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
    * Convert minutes to time string
    */
   private minutesToTime(minutes: number): string {
-    const _hours = Math.floor(minutes / 60);
-    const _mins = minutes % 60;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   }
 
@@ -490,4 +491,4 @@ export class BarberScheduleService extends BaseService<WorkingHours> {
   }
 }
 
-export const _barberScheduleService = new BarberScheduleService();
+export const barberScheduleService = new BarberScheduleService();

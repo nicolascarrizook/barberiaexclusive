@@ -1,6 +1,6 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database, BarbershopHours as DBBarbershopHours } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database, BarbershopHours as DBBarbershopHours } from '@/types/database'
+import { supabase } from '@/lib/supabase'
 
 type DayOfWeek = Database['public']['Enums']['day_of_week'];
 
@@ -135,7 +135,7 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
     barbershopId: string,
     dayOfWeek: DayOfWeek
   ): Promise<BarbershopHoursWithDefaults | null> {
-    const _schedule = await this.getBarbershopSchedule(barbershopId);
+    const schedule = await this.getBarbershopSchedule(barbershopId);
     return schedule.find((s) => s.day_of_week === dayOfWeek) || null;
   }
 
@@ -163,7 +163,7 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
 
       // Validar todos los horarios antes de guardar
       for (const update of updates) {
-        const _validation = this.validateHours(update);
+        const validation = this.validateHours(update);
         if (!validation.isValid) {
           throw new Error(
             `Horario inválido para ${update.day_of_week}: ${validation.errors.join(', ')}`
@@ -204,7 +204,7 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
   ): Promise<BarbershopHours> {
     try {
       // Validar horarios
-      const _validation = this.validateHours(hours as BarbershopHoursInsert);
+      const validation = this.validateHours(hours as BarbershopHoursInsert);
       if (!validation.isValid) {
         throw new Error(`Horario inválido: ${validation.errors.join(', ')}`);
       }
@@ -292,7 +292,7 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
 
       if (!defaultHours || defaultHours.length === 0) {
         // Si no hay horarios por defecto en la BD, usar los hardcodeados
-        const _hardcodedDefaults = this.getDefaultSchedule(barbershopId);
+        const hardcodedDefaults = this.getDefaultSchedule(barbershopId);
         const newHours: BarbershopHoursInsert[] = hardcodedDefaults.map(
           (hour) => ({
             barbershop_id: barbershopId,
@@ -369,7 +369,7 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
     }
 
     // Validar formato de hora (HH:MM o HH:MM:SS)
-    const _timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
 
     if (hours.open_time && !timeRegex.test(hours.open_time)) {
       errors.push('Formato de hora de apertura inválido (debe ser HH:MM)');
@@ -381,8 +381,8 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
 
     // Validar que la hora de cierre sea posterior a la de apertura
     if (hours.open_time && hours.close_time) {
-      const _openTime = this.timeToMinutes(hours.open_time);
-      const _closeTime = this.timeToMinutes(hours.close_time);
+      const openTime = this.timeToMinutes(hours.open_time);
+      const closeTime = this.timeToMinutes(hours.close_time);
 
       if (closeTime <= openTime) {
         errors.push('La hora de cierre debe ser posterior a la de apertura');
@@ -416,10 +416,10 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
           timeRegex.test(hours.break_start) &&
           timeRegex.test(hours.break_end)
         ) {
-          const _openTime = this.timeToMinutes(hours.open_time);
-          const _closeTime = this.timeToMinutes(hours.close_time);
-          const _breakStart = this.timeToMinutes(hours.break_start);
-          const _breakEnd = this.timeToMinutes(hours.break_end);
+          const openTime = this.timeToMinutes(hours.open_time);
+          const closeTime = this.timeToMinutes(hours.close_time);
+          const breakStart = this.timeToMinutes(hours.break_start);
+          const breakEnd = this.timeToMinutes(hours.break_end);
 
           if (breakStart < openTime || breakStart >= closeTime) {
             errors.push(
@@ -446,18 +446,18 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
    */
   async isOpen(barbershopId: string, dateTime: Date): Promise<boolean> {
     try {
-      const _dayOfWeek = this.getDayOfWeekEnum(dateTime.getDay());
-      const _timeStr = this.formatTime(dateTime);
+      const dayOfWeek = this.getDayOfWeekEnum(dateTime.getDay());
+      const timeStr = this.formatTime(dateTime);
 
-      const _schedule = await this.getDaySchedule(barbershopId, dayOfWeek);
+      const schedule = await this.getDaySchedule(barbershopId, dayOfWeek);
 
       if (!schedule || schedule.is_closed) {
         return false;
       }
 
-      const _currentMinutes = this.timeToMinutes(timeStr);
-      const _openMinutes = this.timeToMinutes(schedule.open_time!);
-      const _closeMinutes = this.timeToMinutes(schedule.close_time!);
+      const currentMinutes = this.timeToMinutes(timeStr);
+      const openMinutes = this.timeToMinutes(schedule.open_time!);
+      const closeMinutes = this.timeToMinutes(schedule.close_time!);
 
       // Verificar si está dentro del horario de apertura
       if (currentMinutes < openMinutes || currentMinutes >= closeMinutes) {
@@ -479,15 +479,15 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
   private normalizeTimeFormat(time: string | null): string | null {
     if (!time) return null;
 
-    const _timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])?$/;
-    const _match = time.match(timeRegex);
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])?$/;
+    const match = time.match(timeRegex);
 
     if (!match) return time; // Return as-is if doesn't match expected format
 
     const [, hours, minutes, seconds] = match;
-    const _normalizedHours = hours.padStart(2, '0');
-    const _normalizedMinutes = minutes.padStart(2, '0');
-    const _normalizedSeconds = seconds ? seconds.substring(1) : '00';
+    const normalizedHours = hours.padStart(2, '0');
+    const normalizedMinutes = minutes.padStart(2, '0');
+    const normalizedSeconds = seconds ? seconds.substring(1) : '00';
 
     return `${normalizedHours}:${normalizedMinutes}:${normalizedSeconds}`;
   }
@@ -504,8 +504,8 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
    * Formatea una fecha a HH:MM
    */
   private formatTime(date: Date): string {
-    const _hours = date.getHours().toString().padStart(2, '0');
-    const _minutes = date.getMinutes().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   }
 
@@ -542,13 +542,13 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
     }>
   > {
     try {
-      const _results = [];
-      const _currentDate = new Date(startDate);
+      const results = [];
+      const currentDate = new Date(startDate);
 
       while (currentDate <= endDate) {
-        const _dayOfWeek = this.getDayOfWeekEnum(currentDate.getDay());
-        const _schedule = await this.getDaySchedule(barbershopId, dayOfWeek);
-        const _isOpen = await this.isOpen(barbershopId, currentDate);
+        const dayOfWeek = this.getDayOfWeekEnum(currentDate.getDay());
+        const schedule = await this.getDaySchedule(barbershopId, dayOfWeek);
+        const isOpen = await this.isOpen(barbershopId, currentDate);
 
         results.push({
           date: new Date(currentDate),
@@ -574,18 +574,18 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
     fromDateTime: Date
   ): Promise<Date | null> {
     try {
-      const _maxDaysToCheck = 30; // Buscar hasta 30 días en el futuro
-      const _currentDateTime = new Date(fromDateTime);
+      const maxDaysToCheck = 30; // Buscar hasta 30 días en el futuro
+      const currentDateTime = new Date(fromDateTime);
 
       for (let i = 0; i < maxDaysToCheck; i++) {
-        const _dayOfWeek = this.getDayOfWeekEnum(currentDateTime.getDay());
-        const _schedule = await this.getDaySchedule(barbershopId, dayOfWeek);
+        const dayOfWeek = this.getDayOfWeekEnum(currentDateTime.getDay());
+        const schedule = await this.getDaySchedule(barbershopId, dayOfWeek);
 
         if (schedule && !schedule.is_closed) {
-          const _currentTimeStr = this.formatTime(currentDateTime);
-          const _currentMinutes = this.timeToMinutes(currentTimeStr);
-          const _openMinutes = this.timeToMinutes(schedule.open_time!);
-          const _closeMinutes = this.timeToMinutes(schedule.close_time!);
+          const currentTimeStr = this.formatTime(currentDateTime);
+          const currentMinutes = this.timeToMinutes(currentTimeStr);
+          const openMinutes = this.timeToMinutes(schedule.open_time!);
+          const closeMinutes = this.timeToMinutes(schedule.close_time!);
 
           // Si es el mismo día y ya pasó la hora de cierre, continuar con el siguiente día
           if (i === 0 && currentMinutes >= closeMinutes) {
@@ -618,4 +618,4 @@ class BarbershopHoursService extends BaseService<BarbershopHours> {
   }
 }
 
-export const _barbershopHoursService = new BarbershopHoursService();
+export const barbershopHoursService = new BarbershopHoursService();

@@ -1,8 +1,8 @@
 import React from 'react';
-// // // // // import { HolidayCalendar } from './HolidayCalendar';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Info } from 'lucide-react';
+import { HolidayCalendar } from './HolidayCalendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 interface HolidayCalendarExampleProps {
   barbershopId?: string;
@@ -127,7 +127,7 @@ export const HolidayCalendarExample: React.FC<HolidayCalendarExampleProps> = ({
 };
 
 // Ejemplo de uso en diferentes contextos
-export const _HolidayCalendarUsageExamples = {
+export const HolidayCalendarUsageExamples = {
   // Uso básico en página de configuración
   OwnerSettings: () => (
     <div>

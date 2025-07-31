@@ -1,13 +1,13 @@
-// // // // // import { describe, it, expect, vi, beforeEach } from 'vitest'
-// // // // // import { renderHook } from '@testing-library/react'
-// // // // // import { useAuth } from '../useAuth'
-// // // // // import { AuthProvider } from '@/contexts/AuthContext'
-// // // // // import { createMockAuthContext } from '@/test/mocks/handlers'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { renderHook } from '@testing-library/react'
+import { useAuth } from '../useAuth'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { createMockAuthContext } from '@/test/mocks/handlers'
 import React from 'react';
 
 // Mock del contexto de autenticación
 vi.mock('@/contexts/AuthContext', async () => {
-  const _actual = await vi.importActual('@/contexts/AuthContext');
+  const actual = await vi.importActual('@/contexts/AuthContext');
   return {
     ...actual,
     useAuth: vi.fn(),
@@ -20,7 +20,7 @@ describe('useAuth', () => {
   });
 
   it('retorna null cuando no hay usuario autenticado', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       user: null,
       profile: null,
     });
@@ -37,7 +37,7 @@ describe('useAuth', () => {
   });
 
   it('identifica correctamente un usuario cliente', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       profile: {
         ...createMockAuthContext().profile,
         role: 'client',
@@ -56,7 +56,7 @@ describe('useAuth', () => {
   });
 
   it('identifica correctamente un usuario barbero', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       profile: {
         ...createMockAuthContext().profile,
         role: 'barber',
@@ -75,7 +75,7 @@ describe('useAuth', () => {
   });
 
   it('identifica correctamente un usuario admin', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       profile: {
         ...createMockAuthContext().profile,
         role: 'admin',
@@ -94,7 +94,7 @@ describe('useAuth', () => {
   });
 
   it('crea un objeto de usuario simplificado con los datos correctos', () => {
-    const _mockAuthContext = createMockAuthContext();
+    const mockAuthContext = createMockAuthContext();
 
     vi.mocked(useAuth).mockReturnValue(mockAuthContext);
 
@@ -110,7 +110,7 @@ describe('useAuth', () => {
   });
 
   it('usa el email como nombre cuando no hay full_name', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       profile: {
         ...createMockAuthContext().profile,
         full_name: null,
@@ -129,7 +129,7 @@ describe('useAuth', () => {
   });
 
   it('expone todas las funciones del contexto de autenticación', () => {
-    const _mockAuthContext = createMockAuthContext();
+    const mockAuthContext = createMockAuthContext();
 
     vi.mocked(useAuth).mockReturnValue(mockAuthContext);
 
@@ -143,7 +143,7 @@ describe('useAuth', () => {
   });
 
   it('maneja correctamente el estado de carga', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       loading: true,
     });
 
@@ -155,7 +155,7 @@ describe('useAuth', () => {
   });
 
   it('retorna undefined para avatar cuando no está presente', () => {
-    const _mockAuthContext = createMockAuthContext({
+    const mockAuthContext = createMockAuthContext({
       profile: {
         ...createMockAuthContext().profile,
         avatar_url: null,

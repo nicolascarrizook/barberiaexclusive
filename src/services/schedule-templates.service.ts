@@ -1,6 +1,6 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
 
 // Define types for schedule templates (will be in database after migration)
 interface ScheduleTemplate {
@@ -226,7 +226,7 @@ export class ScheduleTemplatesService {
     const errors: string[] = [];
 
     // Group blocks by day
-    const _blocksByDay = blocks.reduce(
+    const blocksByDay = blocks.reduce(
       (acc, block) => {
         if (!acc[block.day_of_week]) acc[block.day_of_week] = [];
         acc[block.day_of_week].push(block);
@@ -240,8 +240,8 @@ export class ScheduleTemplatesService {
       dayBlocks.sort((a, b) => a.start_time.localeCompare(b.start_time));
 
       for (let i = 0; i < dayBlocks.length - 1; i++) {
-        const _current = dayBlocks[i];
-        const _next = dayBlocks[i + 1];
+        const current = dayBlocks[i];
+        const next = dayBlocks[i + 1];
 
         if (current.end_time > next.start_time) {
           errors.push(
@@ -258,4 +258,4 @@ export class ScheduleTemplatesService {
   }
 }
 
-export const _scheduleTemplatesService = new ScheduleTemplatesService();
+export const scheduleTemplatesService = new ScheduleTemplatesService();

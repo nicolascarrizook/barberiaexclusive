@@ -1,5 +1,5 @@
-// // // // // import { useState } from "react";
-// // // // // import {
+import { useState } from "react";
+import {
   Table,
   TableBody,
   TableCell,
@@ -7,17 +7,17 @@
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// // // // // import { Badge } from "@/components/ui/badge";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Input } from "@/components/ui/input";
-// // // // // import {
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// // // // // import {
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -25,11 +25,11 @@
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Appointment } from "@/types";
-// // // // // import { format } from "date-fns";
-// // // // // import { es } from "date-fns/locale";
-// // // // // import { Search, MoreHorizontal, Phone, Mail, Clock, Calendar } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Appointment } from "@/types";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Search, MoreHorizontal, Phone, Mail, Clock, Calendar } from "lucide-react";
 
 interface AppointmentsListProps {
   appointments: Appointment[];
@@ -46,27 +46,27 @@ export function AppointmentsList({
   const [statusFilter, setStatusFilter] = useState<Appointment['status'] | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'all'>('today');
 
-  const _filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = appointments.filter(appointment => {
     // Search filter
-    const _matchesSearch = searchTerm === "" || 
+    const matchesSearch = searchTerm === "" || 
       appointment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.customerPhone.includes(searchTerm) ||
       appointment.barberName.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Status filter
-    const _matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
 
     // Date filter
-    const _today = new Date();
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const _appointmentDate = new Date(appointment.date);
+    const appointmentDate = new Date(appointment.date);
     appointmentDate.setHours(0, 0, 0, 0);
 
     let matchesDate = true;
     if (dateFilter === 'today') {
       matchesDate = appointmentDate.getTime() === today.getTime();
     } else if (dateFilter === 'week') {
-      const _weekFromNow = new Date(today);
+      const weekFromNow = new Date(today);
       weekFromNow.setDate(weekFromNow.getDate() + 7);
       matchesDate = appointmentDate >= today && appointmentDate <= weekFromNow;
     }
@@ -74,7 +74,7 @@ export function AppointmentsList({
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const _getStatusBadge = (status: Appointment['status']) => {
+  const getStatusBadge = (status: Appointment['status']) => {
     const variants: Record<Appointment['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending: 'secondary',
       confirmed: 'default',

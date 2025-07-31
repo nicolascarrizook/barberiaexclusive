@@ -1,5 +1,5 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
 
 type Barbershop = Database['public']['Tables']['barbershops']['Row'];
 type BarbershopInsert = Database['public']['Tables']['barbershops']['Insert'];
@@ -63,4 +63,4 @@ class BarbershopService extends BaseService<Barbershop> {
   }
 }
 
-export const _barbershopService = new BarbershopService();
+export const barbershopService = new BarbershopService();

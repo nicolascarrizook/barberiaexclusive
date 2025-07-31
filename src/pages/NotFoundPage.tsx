@@ -1,12 +1,12 @@
-// // // // // import { FileQuestion, Home, Search, ArrowLeft } from 'lucide-react';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { useNavigate } from 'react-router-dom';
+import { FileQuestion, Home, Search, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 export function NotFoundPage() {
-  const _navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const _suggestions = [
+  const suggestions = [
     { path: '/', label: 'Página de inicio', icon: Home },
     { path: '/booking', label: 'Reservar cita', icon: Search },
   ];

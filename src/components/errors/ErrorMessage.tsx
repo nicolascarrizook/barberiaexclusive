@@ -1,7 +1,7 @@
-// // // // // import { AlertCircle, XCircle, Info, AlertTriangle } from 'lucide-react';
-// // // // // import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { cn } from '@/lib/utils';
+import { AlertCircle, XCircle, Info, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export type ErrorSeverity = 'error' | 'warning' | 'info';
 
@@ -26,7 +26,7 @@ export function ErrorMessage({
   details,
   showDetails = false,
 }: ErrorMessageProps) {
-  const _getIcon = () => {
+  const getIcon = () => {
     switch (severity) {
       case 'error':
         return XCircle;
@@ -39,7 +39,7 @@ export function ErrorMessage({
     }
   };
 
-  const _getVariant = () => {
+  const getVariant = () => {
     switch (severity) {
       case 'error':
         return 'destructive';
@@ -52,7 +52,7 @@ export function ErrorMessage({
     }
   };
 
-  const _Icon = getIcon();
+  const Icon = getIcon();
 
   return (
     <Alert variant={getVariant()} className={cn('relative', className)}>

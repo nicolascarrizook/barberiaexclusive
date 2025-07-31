@@ -1,35 +1,16 @@
-// // // // // import { Link, Navigate } from 'react-router-dom';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Scissors, Clock, Calendar, Star } from 'lucide-react';
-// // // // // import { useAuth } from '@/hooks/useAuth';
+import { Link, Navigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Scissors, Clock, Calendar, Star } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { SimpleAuthLoader } from '@/components/ui/minimalist-scissors-loader';
 
 export function HomePage() {
-  const { user, isAuthenticated, isAdmin, isBarber, isOwner, loading } =
-    useAuth();
+  const { user, isAuthenticated, isAdmin, isBarber, isOwner, loading } = useAuth();
 
-  // Si está cargando, mostrar un skeleton o spinner
+  // Show minimalist loader during authentication
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Si el usuario está autenticado pero el rol aún no está definido, seguir mostrando loading
-  if (isAuthenticated && user && !user.role) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Verificando permisos...</p>
-        </div>
-      </div>
-    );
+    return <SimpleAuthLoader />;
   }
 
   // Redirigir según el rol del usuario

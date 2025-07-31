@@ -1,11 +1,11 @@
-// // // // // import { useQuery } from '@tanstack/react-query';
-import {useEffect} from 'react';
-// // // // // import { format, isWithinInterval, parseISO } from 'date-fns';
-// // // // // import { availabilityService } from '@/services/availability.service';
-// // // // // import { holidaysService } from '@/services/holidays.service';
-// // // // // import { timeOffService } from '@/services/time-off.service';
-// // // // // import { appointmentService } from '@/services/appointments.service';
-// // // // // import { barbershopHoursService } from '@/services/barbershop-hours.service';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { format, isWithinInterval, parseISO } from 'date-fns';
+import { availabilityService } from '@/services/availability.service';
+import { holidaysService } from '@/services/holidays.service';
+import { timeOffService } from '@/services/time-off.service';
+import { appointmentService } from '@/services/appointments.service';
+import { barbershopHoursService } from '@/services/barbershop-hours.service';
 import type { ScheduleConflict } from '@/components/schedule/ConflictWarnings';
 
 interface UseScheduleConflictsOptions {
@@ -62,7 +62,7 @@ export function useScheduleConflicts({
     queryKey: ['timeoff-conflicts', barbershopId, startDate, endDate, barberId],
     queryFn: async () => {
       if (barberId) {
-        const _allRequests =
+        const allRequests =
           await timeOffService.getBarberTimeOffRequests(barberId);
         return allRequests.filter(
           (req) =>
@@ -109,9 +109,9 @@ export function useScheduleConflicts({
     const detectedConflicts: ScheduleConflict[] = [];
 
     // 1. Check for appointment overlaps (same barber, overlapping times)
-    const _appointmentsByBarber = appointments.reduce(
+    const appointmentsByBarber = appointments.reduce(
       (acc, apt) => {
-        const _barberId = apt.barber_id;
+        const barberId = apt.barber_id;
         if (!acc[barberId]) acc[barberId] = [];
         acc[barberId].push(apt);
         return acc;
@@ -126,11 +126,11 @@ export function useScheduleConflicts({
       );
 
       for (let i = 0; i < barberApts.length - 1; i++) {
-        const _current = barberApts[i];
-        const _next = barberApts[i + 1];
+        const current = barberApts[i];
+        const next = barberApts[i + 1];
 
-        const _currentEnd = new Date(current.end_time);
-        const _nextStart = new Date(next.start_time);
+        const currentEnd = new Date(current.end_time);
+        const nextStart = new Date(next.start_time);
 
         if (
           currentEnd > nextStart &&
@@ -157,7 +157,7 @@ export function useScheduleConflicts({
     holidays.forEach((holiday) => {
       if (!holiday.custom_hours) {
         // Only if completely closed
-        const _holidayAppointments = appointments.filter(
+        const holidayAppointments = appointments.filter(
           (apt) =>
             format(new Date(apt.start_time), 'yyyy-MM-dd') === holiday.date &&
             apt.status !== 'cancelled'
@@ -181,8 +181,8 @@ export function useScheduleConflicts({
     timeOffRequests
       .filter((req) => req.status === 'approved')
       .forEach((timeOff) => {
-        const _timeOffAppointments = appointments.filter((apt) => {
-          const _aptDate = format(new Date(apt.start_time), 'yyyy-MM-dd');
+        const timeOffAppointments = appointments.filter((apt) => {
+          const aptDate = format(new Date(apt.start_time), 'yyyy-MM-dd');
           return (
             apt.barber_id === timeOff.barber_id &&
             aptDate >= timeOff.start_date &&
@@ -210,8 +210,8 @@ export function useScheduleConflicts({
     timeOffRequests
       .filter((req) => req.status === 'pending')
       .forEach((timeOff) => {
-        const _timeOffAppointments = appointments.filter((apt) => {
-          const _aptDate = format(new Date(apt.start_time), 'yyyy-MM-dd');
+        const timeOffAppointments = appointments.filter((apt) => {
+          const aptDate = format(new Date(apt.start_time), 'yyyy-MM-dd');
           return (
             apt.barber_id === timeOff.barber_id &&
             aptDate >= timeOff.start_date &&
@@ -237,9 +237,9 @@ export function useScheduleConflicts({
 
     // 5. Check for capacity exceeded
     if (capacityConfig) {
-      const _appointmentsByDateTime = appointments.reduce(
+      const appointmentsByDateTime = appointments.reduce(
         (acc, apt) => {
-          const _key = `${format(new Date(apt.start_time), 'yyyy-MM-dd HH:mm')}`;
+          const key = `${format(new Date(apt.start_time), 'yyyy-MM-dd HH:mm')}`;
           if (!acc[key]) acc[key] = [];
           acc[key].push(apt);
           return acc;
@@ -248,12 +248,12 @@ export function useScheduleConflicts({
       );
 
       Object.entries(appointmentsByDateTime).forEach(([dateTime, apts]) => {
-        const _activeApts = apts.filter((a) => a.status !== 'cancelled');
+        const activeApts = apts.filter((a) => a.status !== 'cancelled');
         const [date, time] = dateTime.split(' ');
 
         // Get capacity for this time slot
-        const _dayOfWeek = format(new Date(date), 'EEEE').toLowerCase();
-        const _baseCapacity = capacityConfig.base_capacity || 4;
+        const dayOfWeek = format(new Date(date), 'EEEE').toLowerCase();
+        const baseCapacity = capacityConfig.base_capacity || 4;
 
         // Check if capacity is exceeded
         if (activeApts.length > baseCapacity) {
@@ -275,7 +275,7 @@ export function useScheduleConflicts({
     setConflicts(
       detectedConflicts.sort((a, b) => {
         // Sort by severity first, then by date
-        const _severityOrder = { high: 0, medium: 1, low: 2 };
+        const severityOrder = { high: 0, medium: 1, low: 2 };
         if (a.severity !== b.severity) {
           return severityOrder[a.severity] - severityOrder[b.severity];
         }
@@ -290,7 +290,7 @@ export function useScheduleConflicts({
     capacityConfig,
   ]);
 
-  const _isLoading =
+  const isLoading =
     isLoadingAppointments ||
     isLoadingHolidays ||
     isLoadingTimeOff ||

@@ -1,8 +1,8 @@
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Appointment } from "@/types";
-// // // // // import { Calendar, Clock, DollarSign, TrendingUp, Users, Scissors } from "lucide-react";
-// // // // // import { format } from "date-fns";
-// // // // // import { es } from "date-fns/locale";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Appointment } from "@/types";
+import { Calendar, Clock, DollarSign, TrendingUp, Users, Scissors } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface DashboardProps {
   appointments: Appointment[];
@@ -10,33 +10,33 @@ interface DashboardProps {
 
 export function Dashboard({ appointments }: DashboardProps) {
   // Calculate statistics
-  const _today = new Date();
+  const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const _todayAppointments = appointments.filter((apt) => {
-    const _aptDate = new Date(apt.date);
+  const todayAppointments = appointments.filter((apt) => {
+    const aptDate = new Date(apt.date);
     aptDate.setHours(0, 0, 0, 0);
     return aptDate.getTime() === today.getTime();
   });
 
-  const _confirmedToday = todayAppointments.filter(
+  const confirmedToday = todayAppointments.filter(
     (apt) => apt.status === 'confirmed'
   ).length;
-  const _pendingToday = todayAppointments.filter(
+  const pendingToday = todayAppointments.filter(
     (apt) => apt.status === 'pending'
   ).length;
-  const _completedToday = todayAppointments.filter(
+  const completedToday = todayAppointments.filter(
     (apt) => apt.status === 'completed'
   ).length;
 
-  const _todayRevenue = todayAppointments
+  const todayRevenue = todayAppointments
     .filter((apt) => apt.status === 'completed')
     .reduce((sum, apt) => sum + apt.price, 0);
 
-  const _weekRevenue = appointments
+  const weekRevenue = appointments
     .filter((apt) => {
-      const _aptDate = new Date(apt.date);
-      const _weekAgo = new Date(today);
+      const aptDate = new Date(apt.date);
+      const weekAgo = new Date(today);
       weekAgo.setDate(weekAgo.getDate() - 7);
       return (
         apt.status === 'completed' && aptDate >= weekAgo && aptDate <= today
@@ -44,9 +44,9 @@ export function Dashboard({ appointments }: DashboardProps) {
     })
     .reduce((sum, apt) => sum + apt.price, 0);
 
-  const _nextAppointment = appointments
+  const nextAppointment = appointments
     .filter((apt) => {
-      const _aptDate = new Date(apt.date);
+      const aptDate = new Date(apt.date);
       return apt.status === 'confirmed' && aptDate >= today;
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
@@ -203,7 +203,7 @@ export function Dashboard({ appointments }: DashboardProps) {
 }
 
 function getTopBarbers(appointments: Appointment[]) {
-  const _barberStats = appointments
+  const barberStats = appointments
     .filter((apt) => apt.status === 'completed')
     .reduce(
       (acc, apt) => {
@@ -224,7 +224,7 @@ function getTopBarbers(appointments: Appointment[]) {
 }
 
 function getTopServices(appointments: Appointment[]) {
-  const _serviceStats = appointments
+  const serviceStats = appointments
     .filter((apt) => apt.status === 'completed')
     .reduce(
       (acc, apt) => {

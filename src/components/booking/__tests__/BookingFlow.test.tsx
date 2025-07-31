@@ -1,8 +1,8 @@
-// // // // // import { describe, it, expect, vi, beforeEach } from 'vitest'
-// // // // // import { render, screen, waitFor } from '@/test/test-utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@/test/test-utils'
 import userEvent from '@testing-library/user-event';
-// // // // // import { BookingFlow } from '../BookingFlow'
-// // // // // import { mockServices, mockBarbers, mockTimeSlots } from '@/test/mocks/handlers'
+import { BookingFlow } from '../BookingFlow'
+import { mockServices, mockBarbers, mockTimeSlots } from '@/test/mocks/handlers'
 
 // Mock del hook useToast
 vi.mock('@/hooks/use-toast', () => ({
@@ -12,7 +12,7 @@ vi.mock('@/hooks/use-toast', () => ({
 }));
 
 describe('BookingFlow', () => {
-  const _defaultProps = {
+  const defaultProps = {
     services: mockServices,
     barbers: mockBarbers,
     availableSlots: mockTimeSlots,
@@ -35,15 +35,15 @@ describe('BookingFlow', () => {
   });
 
   it('navega al siguiente paso cuando se selecciona un servicio', async () => {
-    const _user = userEvent.setup();
+    const user = userEvent.setup();
     render(<BookingFlow {...defaultProps} />);
 
     // Seleccionar el primer servicio
-    const _firstService = screen.getByText(mockServices[0].name);
+    const firstService = screen.getByText(mockServices[0].name);
     await user.click(firstService);
 
     // Click en siguiente (asumiendo que ServiceSelection tiene un botón de siguiente)
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     await user.click(nextButton);
 
     // Verificar que estamos en el paso 2
@@ -59,13 +59,13 @@ describe('BookingFlow', () => {
   });
 
   it('permite volver al paso anterior', async () => {
-    const _user = userEvent.setup();
+    const user = userEvent.setup();
     render(<BookingFlow {...defaultProps} />);
 
     // Navegar al paso 2
-    const _firstService = screen.getByText(mockServices[0].name);
+    const firstService = screen.getByText(mockServices[0].name);
     await user.click(firstService);
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     await user.click(nextButton);
 
     // Verificar que estamos en paso 2
@@ -74,7 +74,7 @@ describe('BookingFlow', () => {
     });
 
     // Click en volver
-    const _backButton = screen.getByRole('button', { name: /volver/i });
+    const backButton = screen.getByRole('button', { name: /volver/i });
     await user.click(backButton);
 
     // Verificar que volvimos al paso 1
@@ -82,17 +82,17 @@ describe('BookingFlow', () => {
   });
 
   it('muestra el indicador de progreso correctamente', async () => {
-    const _user = userEvent.setup();
+    const user = userEvent.setup();
     render(<BookingFlow {...defaultProps} />);
 
     // Verificar progreso inicial
-    const _progressBar = screen.getByRole('progressbar', { hidden: true });
+    const progressBar = screen.getByRole('progressbar', { hidden: true });
     expect(progressBar).toHaveStyle({ width: '25%' });
 
     // Avanzar al siguiente paso
-    const _firstService = screen.getByText(mockServices[0].name);
+    const firstService = screen.getByText(mockServices[0].name);
     await user.click(firstService);
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     await user.click(nextButton);
 
     // Verificar que el progreso aumentó
@@ -102,7 +102,7 @@ describe('BookingFlow', () => {
   });
 
   it('completa el flujo completo de reserva', async () => {
-    const _user = userEvent.setup();
+    const user = userEvent.setup();
     const { toast } = vi.mocked(await import('@/hooks/use-toast')).useToast();
 
     render(<BookingFlow {...defaultProps} />);
@@ -132,11 +132,11 @@ describe('BookingFlow', () => {
   });
 
   it('resetea el estado al hacer una nueva reserva', async () => {
-    const _user = userEvent.setup();
+    const user = userEvent.setup();
     render(<BookingFlow {...defaultProps} />);
 
     // Seleccionar un servicio
-    const _firstService = screen.getByText(mockServices[0].name);
+    const firstService = screen.getByText(mockServices[0].name);
     await user.click(firstService);
     await user.click(screen.getByRole('button', { name: /siguiente/i }));
 
@@ -152,11 +152,11 @@ describe('BookingFlow', () => {
   });
 
   it('no avanza si no se ha seleccionado una opción requerida', async () => {
-    const _user = userEvent.setup();
+    const user = userEvent.setup();
     render(<BookingFlow {...defaultProps} />);
 
     // Intentar avanzar sin seleccionar servicio
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     await user.click(nextButton);
 
     // Debería seguir en el paso 1

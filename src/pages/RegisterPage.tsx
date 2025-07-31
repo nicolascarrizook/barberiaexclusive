@@ -1,17 +1,17 @@
-// // // // // import { useState } from 'react';
-// // // // // import { Link, useNavigate } from 'react-router-dom';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
-const _registerSchema = z
+const registerSchema = z
   .object({
     email: z.string().email('Email inválido'),
     password: z
@@ -30,7 +30,7 @@ const _registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
-  const _navigate = useNavigate();
+  const navigate = useNavigate();
   const { signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -48,9 +48,9 @@ export function RegisterPage() {
     },
   });
 
-  const _selectedRole = watch('role');
+  const selectedRole = watch('role');
 
-  const _onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
       await signUp({

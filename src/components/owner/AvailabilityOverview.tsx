@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react'
-// // // // // import {
+import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// // // // // import { Button } from '@/components/ui/button'
-// // // // // import {
+import { Button } from '@/components/ui/button'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-// // // // // import { Badge } from '@/components/ui/badge'
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// // // // // import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-// // // // // import { 
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { 
   CalendarDays, 
   ChevronLeft, 
   ChevronRight, 
@@ -31,12 +31,12 @@ import React, { useState, useEffect } from 'react'
   Eye,
   BarChart3
 } from 'lucide-react'
-// // // // // import { 
+import { 
   availabilityService, 
   AvailabilityHeatmapData,
   OverviewStats 
 } from '@/services/availability.service'
-// // // // // import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useAuth'
 
 interface AvailabilityOverviewProps {
   barbershopId: string
@@ -94,7 +94,7 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     loadOverviewData()
   }, [barbershopId, viewMode, currentDate])
 
-  const _loadOverviewData = async () => {
+  const loadOverviewData = async () => {
     setLoading(true)
     try {
       const { startDate, endDate } = getDateRange()
@@ -114,15 +114,15 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     }
   }
 
-  const _getDateRange = () => {
-    const _start = new Date(currentDate)
-    const _end = new Date(currentDate)
+  const getDateRange = () => {
+    const start = new Date(currentDate)
+    const end = new Date(currentDate)
 
     switch (viewMode) {
       case 'day':
         break
       case 'week':
-        const _startOfWeek = start.getDate() - start.getDay()
+        const startOfWeek = start.getDate() - start.getDay()
         start.setDate(startOfWeek)
         end.setDate(startOfWeek + 6)
         break
@@ -139,8 +139,8 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     }
   }
 
-  const _navigateDate = (direction: 'prev' | 'next') => {
-    const _newDate = new Date(currentDate)
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate)
     
     switch (viewMode) {
       case 'day':
@@ -157,7 +157,7 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     setCurrentDate(newDate)
   }
 
-  const _getAvailabilityColor = (level: string) => {
+  const getAvailabilityColor = (level: string) => {
     switch (level) {
       case 'high': return 'bg-green-500'
       case 'medium': return 'bg-yellow-500'
@@ -167,7 +167,7 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     }
   }
 
-  const _getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'available': return 'bg-green-100 text-green-800 border-green-200'
       case 'busy': return 'bg-red-100 text-red-800 border-red-200'
@@ -177,7 +177,7 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     }
   }
 
-  const _getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case 'available': return 'Disponible'
       case 'busy': return 'Ocupado'
@@ -187,10 +187,10 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     }
   }
 
-  const _formatDateRange = () => {
+  const formatDateRange = () => {
     const { startDate, endDate } = getDateRange()
-    const _start = new Date(startDate)
-    const _end = new Date(endDate)
+    const start = new Date(startDate)
+    const end = new Date(endDate)
     
     if (viewMode === 'day') {
       return start.toLocaleDateString('es-ES', { 
@@ -205,7 +205,7 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
   }
 
   // Agrupar datos del heatmap por fecha para la visualización
-  const _groupedHeatmapData = heatmapData.reduce((acc, item) => {
+  const groupedHeatmapData = heatmapData.reduce((acc, item) => {
     if (!acc[item.date]) {
       acc[item.date] = []
     }
@@ -213,7 +213,7 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
     return acc
   }, {} as Record<string, AvailabilityHeatmapData[]>)
 
-  const _hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
+  const hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
 
   if (loading && !overviewStats) {
     return (
@@ -446,10 +446,10 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
                             })}
                           </div>
                           {hours.map((hour) => {
-                            const _hourData = dayData.find(d => d.hour === hour)
-                            const _level = hourData?.availability_level || 'high'
-                            const _bookings = hourData?.bookings || 0
-                            const _capacity = hourData?.capacity || 0
+                            const hourData = dayData.find(d => d.hour === hour)
+                            const level = hourData?.availability_level || 'high'
+                            const bookings = hourData?.bookings || 0
+                            const capacity = hourData?.capacity || 0
                             
                             return (
                               <div
@@ -527,8 +527,8 @@ const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({
                 <div className="space-y-3">
                   {hours.map((hour) => {
                     // Calcular ocupación promedio para esta hora
-                    const _hourData = heatmapData.filter(d => d.hour === hour)
-                    const _avgOccupancy = hourData.length > 0 
+                    const hourData = heatmapData.filter(d => d.hour === hour)
+                    const avgOccupancy = hourData.length > 0 
                       ? (hourData.reduce((sum, d) => sum + (d.bookings / Math.max(d.capacity, 1)), 0) / hourData.length) * 100
                       : 0
                     

@@ -1,15 +1,15 @@
-// // // // // import { useRouteError, useNavigate, isRouteErrorResponse } from 'react-router-dom';
-// // // // // import { AlertCircle, Home, RefreshCw, FileQuestion } from 'lucide-react';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { errorLogger } from '@/utils/errorLogger';
+import { useRouteError, useNavigate, isRouteErrorResponse } from 'react-router-dom';
+import { AlertCircle, Home, RefreshCw, FileQuestion } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { errorLogger } from '@/utils/errorLogger';
 import {useEffect} from 'react';
 
 export function RouteErrorBoundary() {
-  const _error = useRouteError();
-  const _navigate = useNavigate();
-  const _isDevelopment = import.meta.env.DEV;
+  const error = useRouteError();
+  const navigate = useNavigate();
+  const isDevelopment = import.meta.env.DEV;
 
   useEffect(() => {
     // Log route errors
@@ -27,11 +27,11 @@ export function RouteErrorBoundary() {
     }
   }, [error]);
 
-  const _handleGoHome = () => {
+  const handleGoHome = () => {
     navigate('/');
   };
 
-  const _handleReload = () => {
+  const handleReload = () => {
     window.location.reload();
   };
 
@@ -79,14 +79,14 @@ export function RouteErrorBoundary() {
   }
 
   // Handle other route errors
-  const _errorMessage =
+  const errorMessage =
     error instanceof Error
       ? error.message
       : isRouteErrorResponse(error)
         ? `${error.status} - ${error.statusText}`
         : 'Error desconocido';
 
-  const _errorDetails =
+  const errorDetails =
     error instanceof Error
       ? error.stack
       : isRouteErrorResponse(error)

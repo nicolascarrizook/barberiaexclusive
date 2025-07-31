@@ -1,6 +1,8 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
+import { realtimeService } from './realtime.service'
+import { availabilityService } from './availability.service'
 
 type Appointment = Database['public']['Tables']['appointments']['Row'];
 type AppointmentInsert = Database['public']['Tables']['appointments']['Insert'];
@@ -16,14 +18,15 @@ export interface AppointmentWithDetails extends Appointment {
       avatar_url: string | null;
     };
   };
-  client: {
+  customer: {
+    id: string;
     full_name: string;
     phone: string;
     email: string | null;
   };
   service: {
     name: string;
-    duration: number;
+    duration_minutes: number;
     price: number;
   };
 }
@@ -49,20 +52,21 @@ class AppointmentService extends BaseService<Appointment> {
 
   async createAppointment(data: CreateAppointmentData): Promise<Appointment> {
     // Obtener duración del servicio
-    const { data: service } = await supabase
+    const { data: service, error: serviceError } = await supabase
       .from('services')
-      .select('duration, price')
+      .select('duration_minutes, price')
       .eq('id', data.service_id)
-      .single();
+      .maybeSingle();
 
+    if (serviceError) this.handleError(serviceError);
     if (!service) throw new Error('Servicio no encontrado');
 
     // Calcular hora de fin
-    const _endTime = new Date(data.start_time);
-    endTime.setMinutes(endTime.getMinutes() + service.duration);
+    const endTime = new Date(data.start_time);
+    endTime.setMinutes(endTime.getMinutes() + service.duration_minutes);
 
     // Verificar disponibilidad
-    const _isAvailable = await this.checkSlotAvailability(
+    const isAvailable = await this.checkSlotAvailability(
       data.barber_id,
       data.start_time,
       endTime
@@ -83,9 +87,20 @@ class AppointmentService extends BaseService<Appointment> {
       status: 'pending',
       price: service.price,
       notes: data.notes || null,
+      confirmation_code: Math.random().toString(36).substring(2, 8).toUpperCase(), // Generar código único
     };
-
-    return this.create(appointment);
+    
+    // Debug logging
+    console.log('📅 Creating appointment:', appointment);
+    
+    try {
+      const result = await this.create(appointment);
+      console.log('✅ Appointment created:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error creating appointment:', error);
+      throw error;
+    }
   }
 
   async checkSlotAvailability(
@@ -113,29 +128,32 @@ class AppointmentService extends BaseService<Appointment> {
     serviceId: string
   ): Promise<TimeSlot[]> {
     // Obtener duración del servicio
-    const { data: service } = await supabase
+    const { data: service, error: serviceError } = await supabase
       .from('services')
-      .select('duration')
+      .select('duration_minutes')
       .eq('id', serviceId)
-      .single();
+      .maybeSingle();
 
+    if (serviceError) this.handleError(serviceError);
     if (!service) throw new Error('Servicio no encontrado');
 
     // Obtener horario del barbero para ese día
-    const { data: schedule } = await supabase
+    const { data: schedule, error: scheduleError } = await supabase
       .from('barber_working_hours')
       .select('start_time, end_time')
       .eq('barber_id', barberId)
       .eq('day_of_week', date.getDay())
-      .single();
+      .maybeSingle();
+
+    if (scheduleError) this.handleError(scheduleError);
 
     if (!schedule) return []; // Barbero no trabaja ese día
 
     // Obtener citas existentes
-    const _startOfDay = new Date(date);
+    const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
-    const _endOfDay = new Date(date);
+    const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
     const { data: appointments } = await supabase
@@ -148,26 +166,26 @@ class AppointmentService extends BaseService<Appointment> {
 
     // Generar slots disponibles
     const slots: TimeSlot[] = [];
-    const _slotDuration = 30; // Slots de 30 minutos
-    const _serviceDuration = service.duration;
+    const slotDuration = 30; // Slots de 30 minutos
+    const serviceDuration = service.duration_minutes;
 
     const [startHour, startMinute] = schedule.start_time.split(':').map(Number);
     const [endHour, endMinute] = schedule.end_time.split(':').map(Number);
 
-    const _currentSlot = new Date(date);
+    const currentSlot = new Date(date);
     currentSlot.setHours(startHour, startMinute, 0, 0);
 
-    const _endTime = new Date(date);
+    const endTime = new Date(date);
     endTime.setHours(endHour, endMinute, 0, 0);
 
     while (currentSlot < endTime) {
-      const _slotEndTime = new Date(currentSlot);
+      const slotEndTime = new Date(currentSlot);
       slotEndTime.setMinutes(slotEndTime.getMinutes() + serviceDuration);
 
       // Verificar si el slot está disponible
-      const _isAvailable = !appointments?.some((apt) => {
-        const _aptStart = new Date(apt.start_time);
-        const _aptEnd = new Date(apt.end_time);
+      const isAvailable = !appointments?.some((apt) => {
+        const aptStart = new Date(apt.start_time);
+        const aptEnd = new Date(apt.end_time);
         return (
           (currentSlot >= aptStart && currentSlot < aptEnd) ||
           (slotEndTime > aptStart && slotEndTime <= aptEnd) ||
@@ -192,8 +210,8 @@ class AppointmentService extends BaseService<Appointment> {
     return slots;
   }
 
-  async getAppointmentsByClient(
-    clientId: string
+  async getAppointmentsByCustomer(
+    customerId: string
   ): Promise<AppointmentWithDetails[]> {
     const { data, error } = await supabase
       .from('appointments')
@@ -209,19 +227,20 @@ class AppointmentService extends BaseService<Appointment> {
             avatar_url
           )
         ),
-        client:users!appointments_client_id_fkey (
+        customer:profiles!appointments_customer_id_fkey (
+          id,
           full_name,
           phone,
           email
         ),
         service:services!appointments_service_id_fkey (
           name,
-          duration,
+          duration_minutes,
           price
         )
       `
       )
-      .eq('client_id', clientId)
+      .eq('customer_id', customerId)
       .order('start_time', { ascending: false });
 
     if (error) this.handleError(error);
@@ -245,14 +264,15 @@ class AppointmentService extends BaseService<Appointment> {
             avatar_url
           )
         ),
-        client:users!appointments_client_id_fkey (
+        customer:profiles!appointments_customer_id_fkey (
+          id,
           full_name,
           phone,
           email
         ),
         service:services!appointments_service_id_fkey (
           name,
-          duration,
+          duration_minutes,
           price
         )
       `
@@ -283,17 +303,18 @@ class AppointmentService extends BaseService<Appointment> {
             avatar_url
           )
         ),
-        client:users!appointments_client_id_fkey (
+        customer:profiles!appointments_customer_id_fkey (
+          id,
           full_name,
           phone,
           email
         ),
         service:services!appointments_service_id_fkey (
           name,
-          duration,
+          duration_minutes,
           price
         ),
-        total_price
+        price
       `
       )
       .eq('barbershop_id', barbershopId)
@@ -308,7 +329,7 @@ class AppointmentService extends BaseService<Appointment> {
   async getUpcomingAppointments(
     barbershopId: string
   ): Promise<AppointmentWithDetails[]> {
-    const _now = new Date().toISOString();
+    const now = new Date().toISOString();
 
     const { data, error } = await supabase
       .from('appointments')
@@ -324,14 +345,15 @@ class AppointmentService extends BaseService<Appointment> {
             avatar_url
           )
         ),
-        client:users!appointments_client_id_fkey (
+        customer:profiles!appointments_customer_id_fkey (
+          id,
           full_name,
           phone,
           email
         ),
         service:services!appointments_service_id_fkey (
           name,
-          duration,
+          duration_minutes,
           price
         )
       `
@@ -353,35 +375,122 @@ class AppointmentService extends BaseService<Appointment> {
     return this.update(id, { status });
   }
 
+  async updateStatus(
+    id: string,
+    status: Appointment['status']
+  ): Promise<Appointment> {
+    return this.updateAppointmentStatus(id, status);
+  }
+
+  async getByBarberDateRange(
+    barberId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AppointmentWithDetails[]> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(
+        `
+        *,
+        barber:barbers!appointments_barber_id_fkey (
+          id,
+          display_name,
+          profile:profiles!barbers_profile_id_fkey (
+            id,
+            full_name,
+            avatar_url
+          )
+        ),
+        customer:profiles!appointments_customer_id_fkey (
+          id,
+          full_name,
+          phone,
+          email
+        ),
+        service:services!appointments_service_id_fkey (
+          name,
+          duration_minutes,
+          price
+        )
+      `
+      )
+      .eq('barber_id', barberId)
+      .gte('start_time', startDate.toISOString())
+      .lte('start_time', endDate.toISOString())
+      .order('start_time', { ascending: true });
+
+    if (error) this.handleError(error);
+    return data || [];
+  }
+
   async cancelAppointment(id: string, reason?: string): Promise<Appointment> {
+    // Get appointment details first
+    const appointment = await this.getById(id);
+    
     const updates: AppointmentUpdate = {
       status: 'cancelled',
     };
 
     if (reason) {
-      const _appointment = await this.getById(id);
       updates.notes = `${appointment.notes ? appointment.notes + '\n' : ''}Cancelado: ${reason}`;
     }
 
-    return this.update(id, updates);
+    const updatedAppointment = await this.update(id, updates);
+
+    // Broadcast availability update after cancellation
+    try {
+      const dateString = appointment.start_time.split('T')[0];
+      
+      // Get service duration
+      const { data: service, error: serviceError } = await supabase
+        .from('services')
+        .select('duration_minutes')
+        .eq('id', appointment.service_id)
+        .maybeSingle();
+
+      if (serviceError) this.handleError(serviceError);
+
+      if (service) {
+        const dayAvailability = await availabilityService.getDayAvailability({
+          barber_id: appointment.barber_id,
+          barbershop_id: appointment.barbershop_id,
+          date: dateString,
+          service_duration: service.duration_minutes,
+        });
+
+        const availableSlots = dayAvailability.slots.filter(slot => slot.available).length;
+        
+        await realtimeService.broadcastAvailabilityUpdate({
+          barberId: appointment.barber_id,
+          date: dateString,
+          availableSlots,
+          timestamp: new Date(),
+        });
+      }
+    } catch (error) {
+      console.error('Error broadcasting availability update on cancellation:', error);
+      // Don't fail the cancellation if broadcast fails
+    }
+
+    return updatedAppointment;
   }
 
   async getTodayStats(barbershopId: string) {
-    const _today = new Date();
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const _tomorrow = new Date(today);
+    const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const { data, error } = await supabase
       .from('appointments')
-      .select('status, total_price')
+      .select('status, price')
       .eq('barbershop_id', barbershopId)
       .gte('start_time', today.toISOString())
       .lt('start_time', tomorrow.toISOString());
 
     if (error) this.handleError(error);
 
-    const _stats = {
+    const stats = {
       total: data?.length || 0,
       confirmed: data?.filter((a) => a.status === 'confirmed').length || 0,
       pending: data?.filter((a) => a.status === 'pending').length || 0,
@@ -390,11 +499,11 @@ class AppointmentService extends BaseService<Appointment> {
       revenue:
         data
           ?.filter((a) => a.status === 'completed')
-          .reduce((sum, a) => sum + a.total_price, 0) || 0,
+          .reduce((sum, a) => sum + a.price, 0) || 0,
     };
 
     return stats;
   }
 }
 
-export const _appointmentService = new AppointmentService();
+export const appointmentService = new AppointmentService();

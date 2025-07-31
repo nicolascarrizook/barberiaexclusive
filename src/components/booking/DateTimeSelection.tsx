@@ -1,17 +1,49 @@
-import {useEffect} from 'react';
-// // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Calendar } from "@/components/ui/calendar";
-// // // // // import { Badge } from "@/components/ui/badge";
-// // // // // import { TimeSlot, Service, Barber } from "@/types";
-// // // // // import { ChevronLeft, Clock, AlertCircle } from "lucide-react";
-// // // // // import { format } from "date-fns";
-// // // // // import { es } from "date-fns/locale";
-// // // // // import { availabilityService } from "@/services/availability.service";
-// // // // // import { holidaysService } from "@/services/holidays.service";
-// // // // // import { useToast } from "@/hooks/use-toast";
-// // // // // import { Skeleton } from "@/components/ui/skeleton";
-// // // // // import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
+import { TimeSlot, Service, Barber } from "@/types";
+import { ChevronLeft, Clock, AlertCircle } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { availabilityService } from "@/services/availability.service";
+import { holidaysService } from "@/services/holidays.service";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { realtimeService } from "@/services/realtime.service";
+
+const getReasonText = (reason: string): string => {
+  const reasonTexts = {
+    appointment: 'Cita reservada',
+    break: 'Horario de descanso',
+    time_off: 'Vacaciones',
+    closed: 'Barbería cerrada',
+    outside_hours: 'Fuera de horario'
+  };
+  return reasonTexts[reason as keyof typeof reasonTexts] || 'No disponible';
+};
+
+const getSlotDisabledStyle = (reason?: string): string => {
+  const baseStyle = 'cursor-not-allowed opacity-75';
+  
+  switch (reason) {
+    case 'appointment':
+      return `${baseStyle} border-red-300 bg-red-50 text-red-700 hover:bg-red-50`;
+    case 'break':
+      return `${baseStyle} border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-50`;
+    case 'time_off':
+      return `${baseStyle} border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-50`;
+    case 'closed':
+      return `${baseStyle} border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-50`;
+    case 'outside_hours':
+      return `${baseStyle} border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-50`;
+    default:
+      return `${baseStyle} border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-50`;
+  }
+};
 
 interface DateTimeSelectionProps {
   availableSlots: TimeSlot[];
@@ -45,19 +77,19 @@ export function DateTimeSelection({
 
   // Load holidays and disabled dates
   useEffect(() => {
-    const _loadDisabledDates = async () => {
+    const loadDisabledDates = async () => {
       if (!selectedBarber?.barbershop_id) return;
 
       try {
         setIsLoadingDisabledDates(true);
-        const _currentYear = new Date().getFullYear();
-        const _holidays = await holidaysService.getActiveHolidays(
+        const currentYear = new Date().getFullYear();
+        const holidays = await holidaysService.getActiveHolidays(
           selectedBarber.barbershop_id,
           `${currentYear}-01-01`,
           `${currentYear + 1}-12-31`
         );
 
-        const _holidayDates = holidays.map((holiday) => new Date(holiday.date));
+        const holidayDates = holidays.map((holiday) => new Date(holiday.date));
         setDisabledDates(holidayDates);
       } catch (error) {
         console.error('Error loading disabled dates:', error);
@@ -71,7 +103,7 @@ export function DateTimeSelection({
 
   // Load slots when date, service, or barber changes
   useEffect(() => {
-    const _loadSlots = async () => {
+    const loadSlots = async () => {
       if (!selectedDate || !selectedService || !selectedBarber?.barbershop_id) {
         setDynamicSlots([]);
         return;
@@ -79,16 +111,18 @@ export function DateTimeSelection({
 
       setIsLoadingSlots(true);
       try {
-        const _dayAvailability = await availabilityService.getDayAvailability({
+        const dayAvailability = await availabilityService.getDayAvailability({
           barber_id: selectedBarber.id,
           barbershop_id: selectedBarber.barbershop_id,
           date: selectedDate.toISOString().split('T')[0],
-          service_duration: selectedService.duration,
+          service_duration: selectedService.duration_minutes,
         });
 
         const slots: TimeSlot[] = dayAvailability.slots.map((slot) => ({
           time: slot.start.substring(0, 5), // Extract HH:MM from HH:MM:SS
           available: slot.available,
+          reason: slot.reason,
+          reasonText: slot.reason ? getReasonText(slot.reason) : undefined,
         }));
 
         setDynamicSlots(slots);
@@ -108,13 +142,67 @@ export function DateTimeSelection({
     loadSlots();
   }, [selectedDate, selectedService, selectedBarber, toast]);
 
+  // Subscribe to real-time slot updates
+  useEffect(() => {
+    if (!selectedBarber?.id || !selectedDate) return;
+
+    const dateString = selectedDate.toISOString().split('T')[0];
+    
+    // Subscribe to slot changes for this specific barber and date
+    const unsubscribe = realtimeService.subscribeToSlotUpdates(
+      selectedBarber.id,
+      dateString,
+      {
+        onSlotChange: async () => {
+          // Reload slots when appointments change
+          if (selectedService && selectedBarber.barbershop_id) {
+            try {
+              const dayAvailability = await availabilityService.getDayAvailability({
+                barber_id: selectedBarber.id,
+                barbershop_id: selectedBarber.barbershop_id,
+                date: dateString,
+                service_duration: selectedService.duration_minutes,
+              });
+
+              const slots: TimeSlot[] = dayAvailability.slots.map((slot) => ({
+                time: slot.start.substring(0, 5),
+                available: slot.available,
+                reason: slot.reason,
+                reasonText: slot.reason ? getReasonText(slot.reason) : undefined,
+              }));
+
+              setDynamicSlots(slots);
+              
+              // Show toast notification
+              toast({
+                title: 'Horarios actualizados',
+                description: 'Los horarios disponibles han sido actualizados',
+              });
+            } catch (error) {
+              console.error('Error updating slots in real-time:', error);
+            }
+          }
+        },
+        onStatusChange: (status) => {
+          if (status === 'error') {
+            console.error('Real-time connection error');
+          }
+        },
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedBarber?.id, selectedDate, selectedService, toast]);
+
   // Use dynamic slots if available, otherwise fall back to passed slots
-  const _slotsToShow =
+  const slotsToShow =
     selectedDate && selectedService && selectedBarber
       ? dynamicSlots
       : availableSlots;
 
-  const _disabledDays = {
+  const disabledDays = {
     before: new Date(),
     dates: disabledDates,
   };
@@ -189,35 +277,62 @@ export function DateTimeSelection({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="grid grid-cols-3 gap-2">
-                  {slotsToShow.map((slot) => (
-                    <Button
-                      key={slot.time}
-                      variant={
-                        selectedTime === slot.time ? 'default' : 'outline'
+                <TooltipProvider>
+                  <div className="grid grid-cols-3 gap-2">
+                    {slotsToShow.map((slot) => {
+                      const SlotButton = (
+                        <Button
+                          key={slot.time}
+                          variant={
+                            selectedTime === slot.time ? 'default' : 'outline'
+                          }
+                          size="sm"
+                          disabled={!slot.available}
+                          onClick={() => slot.available && onSelectTime(slot.time)}
+                          className={`w-full transition-all duration-200 ${
+                            !slot.available
+                              ? getSlotDisabledStyle(slot.reason)
+                              : 'hover:shadow-sm'
+                          }`}
+                        >
+                          <Clock className="h-3 w-3 mr-1" />
+                          {slot.time}
+                        </Button>
+                      );
+
+                      if (!slot.available && slot.reasonText) {
+                        return (
+                          <Tooltip key={slot.time}>
+                            <TooltipTrigger asChild>
+                              {SlotButton}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{slot.reasonText}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
                       }
-                      size="sm"
-                      disabled={!slot.available}
-                      onClick={() => onSelectTime(slot.time)}
-                      className={`w-full ${
-                        !slot.available
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'hover:shadow-sm'
-                      }`}
-                    >
-                      <Clock className="h-3 w-3 mr-1" />
-                      {slot.time}
-                    </Button>
-                  ))}
-                </div>
+
+                      return SlotButton;
+                    })}
+                  </div>
+                </TooltipProvider>
                 <div className="flex justify-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span>Disponible</span>
                   </div>
                   <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-300 rounded-full"></div>
+                    <span>Cita reservada</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
+                    <span>Descanso</span>
+                  </div>
+                  <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    <span>Ocupado</span>
+                    <span>No disponible</span>
                   </div>
                 </div>
               </div>

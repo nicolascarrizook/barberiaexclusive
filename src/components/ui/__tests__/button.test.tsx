@@ -1,7 +1,7 @@
-// // // // // import { describe, it, expect, vi } from 'vitest'
-// // // // // import { render, screen } from '@/test/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@/test/test-utils'
 import userEvent from '@testing-library/user-event';
-// // // // // import { Button } from '../button'
+import { Button } from '../button'
 
 describe('Button', () => {
   it('renderiza correctamente con texto', () => {
@@ -12,11 +12,11 @@ describe('Button', () => {
   });
 
   it('maneja eventos de click', async () => {
-    const _handleClick = vi.fn();
-    const _user = userEvent.setup();
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
 
     render(<Button onClick={handleClick}>Click me</Button>);
-    const _button = screen.getByRole('button', { name: /click me/i });
+    const button = screen.getByRole('button', { name: /click me/i });
 
     await user.click(button);
     expect(handleClick).toHaveBeenCalledTimes(1);
@@ -24,7 +24,7 @@ describe('Button', () => {
 
   it('se desactiva cuando disabled es true', () => {
     render(<Button disabled>Disabled Button</Button>);
-    const _button = screen.getByRole('button', { name: /disabled button/i });
+    const button = screen.getByRole('button', { name: /disabled button/i });
 
     expect(button).toBeDisabled();
   });
@@ -56,29 +56,29 @@ describe('Button', () => {
       </Button>
     );
 
-    const _link = screen.getByRole('link', { name: /link button/i });
+    const link = screen.getByRole('link', { name: /link button/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/test');
   });
 
   it('combina clases personalizadas con las predeterminadas', () => {
     render(<Button className="custom-class">Custom</Button>);
-    const _button = screen.getByRole('button', { name: /custom/i });
+    const button = screen.getByRole('button', { name: /custom/i });
 
     expect(button).toHaveClass('custom-class');
     expect(button).toHaveClass('bg-primary'); // clase predeterminada
   });
 
   it('no ejecuta onClick cuando está deshabilitado', async () => {
-    const _handleClick = vi.fn();
-    const _user = userEvent.setup();
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
 
     render(
       <Button disabled onClick={handleClick}>
         Disabled
       </Button>
     );
-    const _button = screen.getByRole('button', { name: /disabled/i });
+    const button = screen.getByRole('button', { name: /disabled/i });
 
     await user.click(button);
     expect(handleClick).not.toHaveBeenCalled();

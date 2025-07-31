@@ -1,7 +1,7 @@
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Service } from "@/types";
-// // // // // import { Clock, DollarSign } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Service } from "@/types";
+import { Clock, DollarSign } from "lucide-react";
 
 interface ServiceSelectionProps {
   services: Service[];
@@ -46,7 +46,7 @@ export function ServiceSelection({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />
-                  <span>{service.duration} min</span>
+                  <span>{service.duration_minutes} min</span>
                 </div>
                 <div className="flex items-center gap-1 font-semibold">
                   <DollarSign className="h-4 w-4" />

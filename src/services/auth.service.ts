@@ -1,5 +1,5 @@
-// // // // // import { supabase } from '@/lib/supabase'
-// // // // // import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
+import { Database } from '@/types/database'
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -74,7 +74,7 @@ class AuthService {
       if (error) throw error;
 
       // Obtener el perfil del usuario
-      const _profile = await this.getProfile(data.user.id);
+      const profile = await this.getProfile(data.user.id);
 
       return { user: data.user, session: data.session, profile };
     } catch (error) {
@@ -90,22 +90,21 @@ class AuthService {
 
   async getProfile(userId: string): Promise<Profile | null> {
     try {
-      // Crear una promesa con timeout
-      const _timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout al obtener perfil')), 5000);
-      });
+      // First check if we can get the role from JWT claims
+      const session = await this.getCurrentSession();
+      let roleFromJWT: string | null = null;
+      
+      if (session?.user?.user_metadata?.role) {
+        roleFromJWT = session.user.user_metadata.role;
+      } else if (session?.user?.app_metadata?.role) {
+        roleFromJWT = session.user.app_metadata.role;
+      }
 
-      // Intentar obtener el perfil con timeout
-      const _queryPromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-
-      const { data, error } = await Promise.race([
-        queryPromise,
-        timeoutPromise,
-      ]);
 
       if (error) {
         console.error('[AuthService] Error en query de perfil:', error);
@@ -116,6 +115,23 @@ class AuthService {
           details: error.details,
           hint: error.hint,
         });
+        
+        // If we have a role from JWT, create a minimal profile as fallback
+        if (roleFromJWT && session?.user) {
+          console.warn('[AuthService] Using JWT role as fallback:', roleFromJWT);
+          return {
+            id: userId,
+            email: session.user.email || '',
+            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || '',
+            phone: session.user.user_metadata?.phone || '',
+            role: roleFromJWT as Profile['role'],
+            avatar_url: null,
+            created_at: session.user.created_at,
+            updated_at: new Date().toISOString(),
+            barbershop_id: null
+          };
+        }
+        
         throw error;
       }
 
@@ -124,20 +140,30 @@ class AuthService {
           '[AuthService] No se encontró perfil para userId:',
           userId
         );
+        
+        // If no profile found but we have JWT role, create minimal profile
+        if (roleFromJWT && session?.user) {
+          console.warn('[AuthService] Creating minimal profile from JWT');
+          return {
+            id: userId,
+            email: session.user.email || '',
+            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || '',
+            phone: session.user.user_metadata?.phone || '',
+            role: roleFromJWT as Profile['role'],
+            avatar_url: null,
+            created_at: session.user.created_at,
+            updated_at: new Date().toISOString(),
+            barbershop_id: null
+          };
+        }
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[AuthService] Error obteniendo perfil:', error);
-      console.error('[AuthService] Stack trace:', error.stack);
-
-      // Si es un error de timeout, lo indicamos claramente
-      if (error.message === 'Timeout al obtener perfil') {
-        console.error(
-          '[AuthService] La consulta a Supabase excedió el tiempo límite de 5 segundos'
-        );
+      if (error instanceof Error) {
+        console.error('[AuthService] Stack trace:', error.stack);
       }
-
       return null;
     }
   }
@@ -185,32 +211,44 @@ class AuthService {
     }
   }
 
-  // Verificar si hay una sesión activa
+  // Verify if there's an active session with enhanced error handling
   async getCurrentSession() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session;
+    try {
+      const {
+        data: { session },
+        error
+      } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('[AuthService] Error getting session:', error);
+        return null;
+      }
+      
+      return session;
+    } catch (error) {
+      console.error('[AuthService] Failed to get session:', error);
+      return null;
+    }
   }
 
-  // Obtener el usuario actual con su perfil
+  // Get current user with profile and enhanced error handling
   async getCurrentUser() {
     try {
-      const _session = await this.getCurrentSession();
+      const session = await this.getCurrentSession();
       if (!session?.user) return null;
 
-      const _profile = await this.getProfile(session.user.id);
-      return { user: session.user, profile };
+      const profile = await this.getProfile(session.user.id);
+      return { user: session.user, session, profile };
     } catch (error) {
       console.error('Error obteniendo usuario actual:', error);
       return null;
     }
   }
 
-  // Función de prueba de conexión con Supabase
+  // Enhanced connection test function
   async testConnection() {
     try {
-      // Intentar una consulta simple para verificar la conexión
+      // Test basic database connection
       const { data, error } = await supabase
         .from('profiles')
         .select('count')
@@ -221,12 +259,46 @@ class AuthService {
         return false;
       }
 
+      // Test auth service
+      const session = await this.getCurrentSession();
+      console.log('[AuthService] Connection test successful, session:', !!session);
+      
       return true;
     } catch (error) {
       console.error('[AuthService] Fallo en prueba de conexión:', error);
       return false;
     }
   }
+
+  // Clear all cached authentication data
+  async clearAuthCache() {
+    try {
+      // Clear localStorage items related to Supabase auth
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('sb-') || key.startsWith('barber_profile_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      console.log('[AuthService] Cleared auth cache');
+    } catch (error) {
+      console.warn('[AuthService] Error clearing auth cache:', error);
+    }
+  }
 }
 
-export const _authService = new AuthService();
+export const authService = new AuthService();
+
+// Initialize session recovery on app start
+if (typeof window !== 'undefined') {
+  // Listen for storage events to sync auth state across tabs
+  window.addEventListener('storage', (e) => {
+    if (e.key?.startsWith('sb-') && e.key.includes('auth-token')) {
+      console.log('[AuthService] Auth state changed in another tab');
+      // The auth state change listener in AuthContext will handle this
+    }
+  });
+}

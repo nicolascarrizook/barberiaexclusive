@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react'
-// // // // // import {
+import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// // // // // import { Button } from '@/components/ui/button'
-// // // // // import { Input } from '@/components/ui/input'
-// // // // // import { Label } from '@/components/ui/label'
-// // // // // import {
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-// // // // // import { Switch } from '@/components/ui/switch'
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert'
-// // // // // import { Badge } from '@/components/ui/badge'
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// // // // // import { 
+import { Switch } from '@/components/ui/switch'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { 
   AlertTriangle, 
   TrendingUp, 
   TrendingDown, 
@@ -31,13 +31,13 @@ import React, { useState, useEffect } from 'react'
   RefreshCw,
   Info
 } from 'lucide-react'
-// // // // // import { 
+import { 
   availabilityService, 
   CapacityConfig, 
   PeakHourConfig,
   DayOfWeek 
 } from '@/services/availability.service'
-// // // // // import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useAuth'
 
 interface CapacityConfigurationProps {
   barbershopId: string
@@ -93,8 +93,8 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
     { value: 'sunday', label: 'Domingo' },
   ]
 
-  const _timeSlots = Array.from({ length: 12 }, (_, i) => {
-    const _hour = i + 9 // De 9 AM a 8 PM
+  const timeSlots = Array.from({ length: 12 }, (_, i) => {
+    const hour = i + 9 // De 9 AM a 8 PM
     return `${hour.toString().padStart(2, '0')}:00`
   })
 
@@ -103,7 +103,7 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
     loadConfigurations()
   }, [barbershopId])
 
-  const _loadConfigurations = async () => {
+  const loadConfigurations = async () => {
     setLoading(true)
     try {
       const [capacity, peakHours] = await Promise.all([
@@ -121,13 +121,13 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
   }
 
   // Simular impacto de cambios
-  const _simulateImpact = async () => {
+  const simulateImpact = async () => {
     if (!newCapacityConfig.time_slot || !newCapacityConfig.max_capacity) return
 
     setLoading(true)
     try {
-      const _today = new Date().toISOString().split('T')[0]
-      const _result = await availabilityService.simulateCapacityImpact(
+      const today = new Date().toISOString().split('T')[0]
+      const result = await availabilityService.simulateCapacityImpact(
         barbershopId,
         today,
         newCapacityConfig as CapacityConfig
@@ -142,7 +142,7 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
   }
 
   // Guardar configuración de capacidad
-  const _saveCapacityConfig = async () => {
+  const saveCapacityConfig = async () => {
     if (!newCapacityConfig.time_slot || !newCapacityConfig.max_capacity) return
 
     setSaving(true)
@@ -170,7 +170,7 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
   }
 
   // Guardar configuración de horarios pico
-  const _savePeakHourConfig = async () => {
+  const savePeakHourConfig = async () => {
     setSaving(true)
     try {
       await availabilityService.setPeakHourConfig(newPeakHourConfig as PeakHourConfig)
@@ -192,7 +192,7 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
     }
   }
 
-  const _getRiskLevelColor = (level: string) => {
+  const getRiskLevelColor = (level: string) => {
     switch (level) {
       case 'high': return 'bg-red-100 text-red-800 border-red-200'
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
@@ -200,7 +200,7 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
     }
   }
 
-  const _getImpactIcon = (percentage: number) => {
+  const getImpactIcon = (percentage: number) => {
     if (percentage > 0) return <TrendingUp className="h-4 w-4 text-green-600" />
     if (percentage < 0) return <TrendingDown className="h-4 w-4 text-red-600" />
     return <Clock className="h-4 w-4 text-gray-600" />
@@ -551,7 +551,7 @@ const CapacityConfiguration: React.FC<CapacityConfigurationProps> = ({
               <CardContent>
                 <div className="grid gap-4">
                   {peakHourConfigs.map((config, index) => {
-                    const _dayLabel = daysOfWeek.find(d => d.value === config.day_of_week)?.label
+                    const dayLabel = daysOfWeek.find(d => d.value === config.day_of_week)?.label
                     return (
                       <div
                         key={index}

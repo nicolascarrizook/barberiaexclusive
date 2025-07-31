@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
-// // // // // import { format, startOfWeek, addDays, isSameDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
-// // // // // import { es } from 'date-fns/locale';
-// // // // // import { useQuery } from '@tanstack/react-query';
-// // // // // import { 
+import { format, startOfWeek, addDays, isSameDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { useQuery } from '@tanstack/react-query';
+import { 
   Card, 
   CardContent, 
   CardDescription, 
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Badge } from '@/components/ui/badge';
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import {
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-// // // // // import { 
+import { 
   Calendar, 
   ChevronLeft, 
   ChevronRight, 
@@ -34,11 +34,11 @@ import React, { useState, useEffect } from 'react';
   Eye,
   Filter
 } from 'lucide-react';
-// // // // // import { barberService } from '@/services/barbers.service';
-// // // // // import { availabilityService } from '@/services/availability.service';
-// // // // // import { holidaysService } from '@/services/holidays.service';
-// // // // // import { timeOffService } from '@/services/time-off.service';
-// // // // // import { barbershopHoursService } from '@/services/barbershop-hours.service';
+import { barberService } from '@/services/barbers.service';
+import { availabilityService } from '@/services/availability.service';
+import { holidaysService } from '@/services/holidays.service';
+import { timeOffService } from '@/services/time-off.service';
+import { barbershopHoursService } from '@/services/barbershop-hours.service';
 
 interface ScheduleOverviewProps {
   barbershopId: string;
@@ -105,7 +105,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     },
   });
 
-  const _getDateRange = () => {
+  const getDateRange = () => {
     let startDate: Date;
     let endDate: Date;
 
@@ -123,7 +123,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     };
   };
 
-  const _navigateDate = (direction: 'prev' | 'next') => {
+  const navigateDate = (direction: 'prev' | 'next') => {
     if (viewMode === 'week') {
       setCurrentDate(prev => addDays(prev, direction === 'next' ? 7 : -7));
     } else {
@@ -131,29 +131,29 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     }
   };
 
-  const _isHoliday = (date: Date): boolean => {
-    const _dateStr = format(date, 'yyyy-MM-dd');
+  const isHoliday = (date: Date): boolean => {
+    const dateStr = format(date, 'yyyy-MM-dd');
     return holidays?.some(h => h.date === dateStr) || false;
   };
 
-  const _getDaySchedule = (barberId: string, date: Date) => {
-    const _dateStr = format(date, 'yyyy-MM-dd');
-    const _dayOfWeek = format(date, 'EEEE').toLowerCase();
+  const getDaySchedule = (barberId: string, date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const dayOfWeek = format(date, 'EEEE').toLowerCase();
     
     // Check if it's a holiday
-    const _holiday = holidays?.find(h => h.date === dateStr);
+    const holiday = holidays?.find(h => h.date === dateStr);
     if (holiday && !holiday.custom_hours) {
       return { isWorking: false, isHoliday: true, holidayReason: holiday.reason };
     }
 
     // Check barbershop hours
-    const _dayHours = barbershopHours?.find(h => h.day_of_week === dayOfWeek);
+    const dayHours = barbershopHours?.find(h => h.day_of_week === dayOfWeek);
     if (!dayHours || dayHours.is_closed) {
       return { isWorking: false, isClosed: true };
     }
 
     // Check time off
-    const _timeOff = timeOffRequests?.find(
+    const timeOff = timeOffRequests?.find(
       to => to.barber_id === barberId && 
       dateStr >= to.start_date && 
       dateStr <= to.end_date &&
@@ -169,7 +169,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     }
 
     // Get availability data
-    const _availability = availabilityData?.find(
+    const availability = availabilityData?.find(
       a => a.date === dateStr && a.barber_id === barberId
     );
 
@@ -181,7 +181,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     };
   };
 
-  const _getStatusColor = (schedule: any) => {
+  const getStatusColor = (schedule: any) => {
     if (!schedule.isWorking) {
       if (schedule.isHoliday) return 'bg-blue-100 border-blue-300';
       if (schedule.hasTimeOff) {
@@ -202,7 +202,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     }
   };
 
-  const _getStatusIcon = (schedule: any) => {
+  const getStatusIcon = (schedule: any) => {
     if (!schedule.isWorking) {
       if (schedule.isHoliday) return <Calendar className="h-3 w-3" />;
       if (schedule.hasTimeOff) return <CalendarOff className="h-3 w-3" />;
@@ -211,9 +211,9 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     return null;
   };
 
-  const _renderWeekView = () => {
-    const _startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-    const _days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
+  const renderWeekView = () => {
+    const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
 
     return (
       <div className="space-y-4">
@@ -252,7 +252,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
               </div>
               
               {days.map((day) => {
-                const _schedule = getDaySchedule(barber.id, day);
+                const schedule = getDaySchedule(barber.id, day);
                 return (
                   <TooltipProvider key={day.toISOString()}>
                     <Tooltip>
@@ -312,7 +312,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
     );
   };
 
-  const _isLoading = isLoadingBarbers || isLoadingHours || isLoadingHolidays || 
+  const isLoading = isLoadingBarbers || isLoadingHours || isLoadingHolidays || 
                    isLoadingTimeOff || isLoadingAvailability;
 
   if (isLoading) {
@@ -455,7 +455,7 @@ export function ScheduleOverview({ barbershopId }: ScheduleOverviewProps) {
           <CardContent>
             <div className="text-2xl font-bold">
               {holidays?.filter(h => {
-                const _holidayMonth = new Date(h.date).getMonth();
+                const holidayMonth = new Date(h.date).getMonth();
                 return holidayMonth === currentDate.getMonth();
               }).length || 0}
             </div>

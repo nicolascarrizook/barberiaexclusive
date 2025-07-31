@@ -1,8 +1,8 @@
-// // // // // import { useState } from 'react';
-// // // // // import { AppointmentsList } from '@/components/admin/AppointmentsList';
-// // // // // import { AppointmentDetails } from '@/components/admin/AppointmentDetails';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { Appointment } from '@/types';
+import { useState } from 'react';
+import { AppointmentsList } from '@/components/admin/AppointmentsList';
+import { AppointmentDetails } from '@/components/admin/AppointmentDetails';
+import { useToast } from '@/hooks/use-toast';
+import { Appointment } from '@/types';
 
 // Mock data - esto se reemplazará con datos de Supabase
 const mockAppointments: Appointment[] = [
@@ -67,7 +67,7 @@ export function AdminAppointments() {
     useState<Appointment | null>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
 
-  const _handleUpdateAppointmentStatus = (
+  const handleUpdateAppointmentStatus = (
     id: string,
     status: Appointment['status']
   ) => {
@@ -81,7 +81,7 @@ export function AdminAppointments() {
     setShowAppointmentDetails(false);
   };
 
-  const _handleViewAppointmentDetails = (appointment: Appointment) => {
+  const handleViewAppointmentDetails = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowAppointmentDetails(true);
   };

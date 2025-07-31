@@ -1,5 +1,5 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
 
 type Service = Database['public']['Tables']['services']['Row'];
 type ServiceInsert = Database['public']['Tables']['services']['Insert'];
@@ -15,6 +15,20 @@ class ServicesService extends BaseService<Service> {
       .select('*')
       .eq('barbershop_id', barbershopId)
       .order('order_index', { ascending: true });
+
+    if (error) this.handleError(error);
+    return data || [];
+  }
+
+  // Override getAll to support filters like the barbers service
+  async getAll(options?: { filters?: { active?: boolean } }): Promise<Service[]> {
+    let query = this.query().select('*');
+
+    if (options?.filters?.active !== undefined) {
+      query = query.eq('is_active', options.filters.active);
+    }
+
+    const { data, error } = await query.order('name');
 
     if (error) this.handleError(error);
     return data || [];
@@ -46,7 +60,8 @@ class ServicesService extends BaseService<Service> {
   }
 
   async toggleServiceStatus(id: string): Promise<Service> {
-    const _service = await this.getById(id);
+    const service = await this.getById(id);
+    if (!service) throw new Error('Service not found');
     return this.update(id, { is_active: !service.is_active });
   }
 
@@ -54,7 +69,7 @@ class ServicesService extends BaseService<Service> {
     const { data, error } = await this.query()
       .select('duration_minutes')
       .eq('id', serviceId)
-      .single();
+      .maybeSingle();
 
     if (error) this.handleError(error);
     return data?.duration_minutes || 30; // Default 30 minutos
@@ -78,4 +93,4 @@ class ServicesService extends BaseService<Service> {
   }
 }
 
-export const _servicesService = new ServicesService();
+export const servicesService = new ServicesService();

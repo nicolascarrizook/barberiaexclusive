@@ -1,11 +1,11 @@
 import React, { ReactElement } from 'react';
-// // // // // import { render, RenderOptions } from '@testing-library/react'
-// // // // // import { BrowserRouter } from 'react-router-dom'
-// // // // // import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-// // // // // import { AuthProvider } from '@/contexts/AuthContext'
+import { render, RenderOptions } from '@testing-library/react'
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 // Crear un QueryClient para tests
-const _createTestQueryClient = () =>
+const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {
@@ -20,7 +20,7 @@ interface TestProviderProps {
 
 // Provider que envuelve todos los providers necesarios para los tests
 export function TestProvider({ children }: TestProviderProps) {
-  const _testQueryClient = createTestQueryClient();
+  const testQueryClient = createTestQueryClient();
 
   return (
     <QueryClientProvider client={testQueryClient}>
@@ -32,7 +32,7 @@ export function TestProvider({ children }: TestProviderProps) {
 }
 
 // Custom render que incluye todos los providers
-const _customRender = (
+const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: TestProvider, ...options });

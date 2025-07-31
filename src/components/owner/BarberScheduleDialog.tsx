@@ -1,16 +1,16 @@
-// // // // // import { useState } from 'react';
-// // // // // import {
+import { useState } from 'react';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { BarberWorkingHours } from '@/components/barber/BarberWorkingHours';
-// // // // // import { BarberScheduleManager } from '@/components/barber/BarberScheduleManager';
-// // // // // import { Clock, Calendar, AlertCircle } from 'lucide-react';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarberWorkingHours } from '@/components/barber/BarberWorkingHours';
+import { BarberScheduleManager } from '@/components/barber/BarberScheduleManager';
+import { Clock, Calendar, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface BarberScheduleDialogProps {
   barberId: string;

@@ -1,14 +1,14 @@
-// // // // // import { useState } from "react";
-// // // // // import { Link, useLocation } from "react-router-dom";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import {
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-// // // // // import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// // // // // import {
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,17 +16,17 @@
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// // // // // import { cn } from "@/lib/utils";
-// // // // // import { Menu, Scissors, Calendar, LayoutDashboard, User, LogOut, Settings, Store } from "lucide-react";
-// // // // // import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { Menu, Scissors, Calendar, LayoutDashboard, User, LogOut, Settings, Store } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
-  const _location = useLocation();
+  const location = useLocation();
   const { user, signOut } = useAuth();
 
-  const _navItems = [
+  const navItems = [
     {
       path: '/booking',
       label: 'Reservar cita',
@@ -53,7 +53,7 @@ export function Navigation() {
     },
   ] as const;
 
-  const _visibleNavItems = navItems.filter(item => {
+  const visibleNavItems = navItems.filter(item => {
     if (item.public) return true;
     if (!user) return false;
     if (item.requiredRole && user.role !== item.requiredRole) return false;
@@ -76,8 +76,9 @@ export function Navigation() {
             <NavigationMenuList>
               {visibleNavItems.map((item) => (
                 <NavigationMenuItem key={item.path}>
-                  <Link to={item.path}>
-                    <NavigationMenuLink
+                  <NavigationMenuLink asChild>
+                    <Link 
+                      to={item.path}
                       className={cn(
                         "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 cursor-pointer",
                         location.pathname.startsWith(item.path) && "bg-accent"
@@ -85,8 +86,8 @@ export function Navigation() {
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {item.label}
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>

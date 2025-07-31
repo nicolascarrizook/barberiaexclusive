@@ -1,28 +1,29 @@
-// // // // // import { useState } from 'react';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { BarberScheduleManager } from '@/components/barber/BarberScheduleManager';
-// // // // // import { VacationRequestForm } from '@/components/schedule/VacationRequestForm';
-// // // // // import { AppointmentDetails } from '@/components/admin/AppointmentDetails';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { useQuery } from '@tanstack/react-query';
-// // // // // import { appointmentService } from '@/services/appointments.service';
-// // // // // import { profileService } from '@/services/profiles.service';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { Calendar, Clock, CalendarOff, Info, Loader2 } from 'lucide-react';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Badge } from '@/components/ui/badge';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { format, startOfDay, endOfDay } from 'date-fns';
-// // // // // import { es } from 'date-fns/locale';
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarberScheduleManager } from '@/components/barber/BarberScheduleManager';
+import { VacationRequestForm } from '@/components/schedule/VacationRequestForm';
+import { AppointmentDetails } from '@/components/admin/AppointmentDetails';
+import { useToast } from '@/hooks/use-toast';
+import { AppointmentWithDetails, appointmentService } from '@/services/appointments.service';
+import { AppointmentStatus } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import { profileService } from '@/services/profiles.service';
+import { barbershopService } from '@/services/barbershops.service';
+import { Calendar, Clock, CalendarOff, Info, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format, startOfDay, endOfDay } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function BarberSchedule() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentWithDetails | null>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
 
@@ -55,8 +56,8 @@ export function BarberSchedule() {
     queryKey: ['barber-appointments', user?.id, selectedDate],
     queryFn: async () => {
       if (!user?.id || !barberProfile?.id) return [];
-      const _start = startOfDay(selectedDate);
-      const _end = endOfDay(selectedDate);
+      const start = startOfDay(selectedDate);
+      const end = endOfDay(selectedDate);
       return appointmentService.getByBarberDateRange(
         barberProfile.id,
         start,
@@ -66,9 +67,9 @@ export function BarberSchedule() {
     enabled: !!user?.id && !!barberProfile?.id,
   });
 
-  const _handleUpdateAppointmentStatus = async (id: string, status: string) => {
+  const handleUpdateAppointmentStatus = async (id: string, status: string) => {
     try {
-      await appointmentService.updateStatus(id, status as any);
+      await appointmentService.updateStatus(id, status as AppointmentStatus);
       toast({
         title: 'Estado actualizado',
         description: `La cita ha sido marcada como ${
@@ -90,12 +91,12 @@ export function BarberSchedule() {
     }
   };
 
-  const _handleViewAppointmentDetails = (appointment: any) => {
+  const handleViewAppointmentDetails = (appointment: AppointmentWithDetails) => {
     setSelectedAppointment(appointment);
     setShowAppointmentDetails(true);
   };
 
-  const _isLoading = isLoadingProfile || isLoadingBarbershop;
+  const isLoading = isLoadingProfile || isLoadingBarbershop;
 
   if (isLoading) {
     return (
@@ -124,7 +125,7 @@ export function BarberSchedule() {
   }
 
   // Calculate stats
-  const _todayStats = {
+  const todayStats = {
     total: todayAppointments?.length || 0,
     confirmed:
       todayAppointments?.filter((a) => a.status === 'confirmed').length || 0,

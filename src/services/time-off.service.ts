@@ -1,6 +1,6 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
 
 type TimeOff = Database['public']['Tables']['time_off']['Row'];
 type TimeOffInsert = Database['public']['Tables']['time_off']['Insert'];
@@ -53,7 +53,7 @@ class TimeOffService extends BaseService<TimeOff> {
    */
   async requestTimeOff(request: TimeOffRequest): Promise<TimeOff> {
     // Validar fechas
-    const _validation = this.validateDates(
+    const validation = this.validateDates(
       request.start_date,
       request.end_date
     );
@@ -62,7 +62,7 @@ class TimeOffService extends BaseService<TimeOff> {
     }
 
     // Verificar que no haya conflictos con otras vacaciones aprobadas
-    const _hasConflict = await this.checkTimeOffConflict(
+    const hasConflict = await this.checkTimeOffConflict(
       request.barber_id,
       request.start_date,
       request.end_date
@@ -145,7 +145,7 @@ class TimeOffService extends BaseService<TimeOff> {
    * Obtiene las vacaciones activas de un barbero
    */
   async getActiveTimeOff(barberId: string, date?: string): Promise<TimeOff[]> {
-    const _checkDate = date || new Date().toISOString().split('T')[0];
+    const checkDate = date || new Date().toISOString().split('T')[0];
 
     const { data, error } = await supabase
       .from('time_off')
@@ -182,7 +182,7 @@ class TimeOffService extends BaseService<TimeOff> {
     }
 
     // Verificar conflictos antes de aprobar
-    const _hasConflict = await this.checkTimeOffConflict(
+    const hasConflict = await this.checkTimeOffConflict(
       timeOff.barber_id,
       timeOff.start_date,
       timeOff.end_date,
@@ -273,7 +273,7 @@ class TimeOffService extends BaseService<TimeOff> {
     }
 
     // Si ya comenzaron las vacaciones, no se pueden cancelar
-    const _today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
     if (timeOff.status === 'approved' && timeOff.start_date <= today) {
       throw new Error('No se pueden cancelar vacaciones que ya comenzaron');
     }
@@ -327,9 +327,9 @@ class TimeOffService extends BaseService<TimeOff> {
     barberId: string,
     year?: number
   ): Promise<TimeOffStats> {
-    const _currentYear = year || new Date().getFullYear();
-    const _startOfYear = `${currentYear}-01-01`;
-    const _endOfYear = `${currentYear}-12-31`;
+    const currentYear = year || new Date().getFullYear();
+    const startOfYear = `${currentYear}-01-01`;
+    const endOfYear = `${currentYear}-12-31`;
 
     const { data, error } = await supabase
       .from('time_off')
@@ -340,7 +340,7 @@ class TimeOffService extends BaseService<TimeOff> {
 
     if (error) this.handleError(error);
 
-    const _requests = data || [];
+    const requests = data || [];
 
     const stats: TimeOffStats = {
       total_requests: requests.length,
@@ -353,7 +353,7 @@ class TimeOffService extends BaseService<TimeOff> {
 
     // Calcular días totales
     requests.forEach((request) => {
-      const _days = this.calculateDays(request.start_date, request.end_date);
+      const days = this.calculateDays(request.start_date, request.end_date);
       stats.days_requested += days;
 
       if (request.status === 'approved') {
@@ -405,9 +405,9 @@ class TimeOffService extends BaseService<TimeOff> {
     startDate: string,
     endDate: string
   ): { isValid: boolean; error?: string } {
-    const _start = new Date(startDate);
-    const _end = new Date(endDate);
-    const _today = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Validar formato de fecha
@@ -429,7 +429,7 @@ class TimeOffService extends BaseService<TimeOff> {
     }
 
     // Máximo 30 días de vacaciones continuas
-    const _days = this.calculateDays(startDate, endDate);
+    const days = this.calculateDays(startDate, endDate);
     if (days > 30) {
       return {
         isValid: false,
@@ -444,12 +444,12 @@ class TimeOffService extends BaseService<TimeOff> {
    * Calcula el número de días entre dos fechas
    */
   private calculateDays(startDate: string, endDate: string): number {
-    const _start = new Date(startDate);
-    const _end = new Date(endDate);
-    const _diffTime = Math.abs(end.getTime() - start.getTime());
-    const _diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays + 1; // +1 para incluir ambos días
   }
 }
 
-export const _timeOffService = new TimeOffService();
+export const timeOffService = new TimeOffService();

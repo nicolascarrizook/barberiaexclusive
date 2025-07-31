@@ -1,11 +1,11 @@
 import React from 'react';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { BarberWorkSchedule } from './BarberWorkSchedule';
-// // // // // import { BarberScheduleManager } from './BarberScheduleManager';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Clock, Calendar, Coffee } from 'lucide-react';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Info } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarberWorkSchedule } from './BarberWorkSchedule';
+import { BarberScheduleManager } from './BarberScheduleManager';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Clock, Calendar, Coffee } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 interface BarberScheduleManagerV2Props {
   barberId: string;

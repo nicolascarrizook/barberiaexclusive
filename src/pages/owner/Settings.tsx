@@ -1,25 +1,25 @@
-// // // // // import { useState } from 'react';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Textarea } from '@/components/ui/textarea';
-// // // // // import { Switch } from '@/components/ui/switch';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { ArrowLeft, Save, Settings, Calendar } from 'lucide-react';
-// // // // // import { Link } from 'react-router-dom';
-// // // // // import { HolidayCalendar } from '@/components/schedule';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { barbershopService } from '@/services/barbershops.service';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ArrowLeft, Save, Settings, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { HolidayCalendar } from '@/components/schedule';
 
-const _settingsSchema = z.object({
+const settingsSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   address: z.string().min(5, 'La dirección debe tener al menos 5 caracteres'),
   phone: z.string().min(8, 'El teléfono debe tener al menos 8 caracteres'),
@@ -37,7 +37,7 @@ type SettingsFormData = z.infer<typeof settingsSchema>;
 export function OwnerSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const _queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch barbershop data
@@ -49,13 +49,13 @@ export function OwnerSettings() {
     queryKey: ['owner-barbershop', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID');
-      const _shops = await barbershopService.getByOwner(user.id);
+      const shops = await barbershopService.getByOwner(user.id);
       return shops[0];
     },
     enabled: !!user?.id,
   });
 
-  const _form = useForm<SettingsFormData>({
+  const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       name: '',
@@ -87,7 +87,7 @@ export function OwnerSettings() {
       : undefined,
   });
 
-  const _updateMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
       if (!barbershop?.id) throw new Error('No barbershop ID');
       return barbershopService.updateBarbershop(barbershop.id, {
@@ -123,7 +123,7 @@ export function OwnerSettings() {
     },
   });
 
-  const _onSubmit = async (data: SettingsFormData) => {
+  const onSubmit = async (data: SettingsFormData) => {
     setIsSubmitting(true);
     try {
       await updateMutation.mutateAsync(data);

@@ -1,18 +1,18 @@
-import {useEffect} from 'react';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// // // // // import { Badge } from '@/components/ui/badge';
-// // // // // import { Store, Calendar, Users, DollarSign, Clock, Settings, TrendingUp, UserCheck } from 'lucide-react';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { appointmentService } from '@/services/appointments.service';
-// // // // // import { useQuery } from '@tanstack/react-query';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Link } from 'react-router-dom';
-// // // // // import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-// // // // // import { es } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Store, Calendar, Users, DollarSign, Clock, Settings, TrendingUp, UserCheck } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { barbershopService } from '@/services/barbershops.service';
+import { appointmentService } from '@/services/appointments.service';
+import { useQuery } from '@tanstack/react-query';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Link } from 'react-router-dom';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function OwnerDashboard() {
   const { user } = useAuth();
@@ -29,14 +29,14 @@ export function OwnerDashboard() {
     queryKey: ['owner-barbershop', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('No user ID');
-      const _shops = await barbershopService.getByOwner(user.id);
+      const shops = await barbershopService.getByOwner(user.id);
       return shops[0]; // For now, assume one barbershop per owner
     },
     enabled: !!user?.id,
   });
 
   // Calculate date range based on selected period
-  const _dateRange =
+  const dateRange =
     selectedPeriod === 'week'
       ? {
           start: startOfWeek(new Date(), { locale: es }),
@@ -59,7 +59,7 @@ export function OwnerDashboard() {
   });
 
   // Calculate metrics
-  const _metrics = {
+  const metrics = {
     totalAppointments: appointments?.length || 0,
     completedAppointments:
       appointments?.filter((a) => a.status === 'completed').length || 0,
@@ -68,7 +68,7 @@ export function OwnerDashboard() {
     totalRevenue:
       appointments
         ?.filter((a) => a.status === 'completed')
-        .reduce((sum, a) => sum + (a.total_price || 0), 0) || 0,
+        .reduce((sum, a) => sum + (a.price || 0), 0) || 0,
   };
 
   if (barbershopLoading || appointmentsLoading) {

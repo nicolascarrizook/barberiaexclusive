@@ -1,4 +1,4 @@
-// // // // // import { supabase } from './lib/supabase'
+import { supabase } from './lib/supabase'
 
 async function testConnection() {
   console.log('🔄 Testing Supabase connection...');
@@ -17,7 +17,7 @@ async function testConnection() {
     }
 
     // Test 2: List tables
-    const _tables = [
+    const tables = [
       'profiles',
       'barbershops',
       'barbers',

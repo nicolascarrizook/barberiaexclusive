@@ -1,15 +1,15 @@
 // Load environment variables manually
-// // // // // import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import * as fs from 'fs';
 import * as path from 'path';
 
 // Read .env file manually
-const _envPath = path.join(process.cwd(), '.env');
-const _envContent = fs.readFileSync(envPath, 'utf-8');
+const envPath = path.join(process.cwd(), '.env');
+const envContent = fs.readFileSync(envPath, 'utf-8');
 const envVars: Record<string, string> = {};
 
 envContent.split('\n').forEach((line) => {
-  const _trimmed = line.trim();
+  const trimmed = line.trim();
   if (trimmed && !trimmed.startsWith('#')) {
     const [key, value] = trimmed.split('=');
     if (key && value) {
@@ -18,14 +18,14 @@ envContent.split('\n').forEach((line) => {
   }
 });
 
-const _supabaseUrl = envVars.VITE_SUPABASE_URL;
-const _supabaseAnonKey = envVars.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = envVars.VITE_SUPABASE_URL;
+const supabaseAnonKey = envVars.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const _supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function testConnection() {
   console.log('🔄 Testing Supabase connection...');
@@ -45,7 +45,7 @@ async function testConnection() {
     }
 
     // Test 2: List tables
-    const _tables = [
+    const tables = [
       'profiles',
       'barbershops',
       'barbers',

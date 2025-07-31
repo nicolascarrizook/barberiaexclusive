@@ -1,6 +1,6 @@
-// // // // // import { BaseService } from './base.service';
-// // // // // import { supabase } from '@/lib/supabase';
-// // // // // import { Database } from '@/types/database.generated';
+import { BaseService } from './base.service';
+import { supabase } from '@/lib/supabase';
+import { Database } from '@/types/database.generated';
 
 export type SpecialDate = Database['public']['Tables']['special_dates']['Row'];
 export type SpecialDateInsert =
@@ -15,6 +15,20 @@ export interface HolidayCustomHours {
     start: string;
     end: string;
   }>;
+}
+
+// Type for affected appointments
+interface AffectedAppointment {
+  id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  customer_id: string;
+  barber_id: string;
+  service_id: string;
+  profiles: { full_name: string } | null;
+  barbers: { display_name: string } | null;
+  services: { name: string } | null;
 }
 
 export interface Holiday extends Omit<SpecialDate, 'custom_hours'> {
@@ -234,8 +248,8 @@ export class HolidaysService extends BaseService<Holiday> {
     barbershopId: string,
     year: number
   ): Promise<Holiday[]> {
-    const _startDate = `${year}-01-01`;
-    const _endDate = `${year}-12-31`;
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
 
     const { data, error } = await this.query()
       .select('*')
@@ -259,8 +273,8 @@ export class HolidaysService extends BaseService<Holiday> {
     let query = this.query().select('*').eq('barbershop_id', barbershopId);
 
     if (filter.year) {
-      const _startDate = `${filter.year}-01-01`;
-      const _endDate = `${filter.year}-12-31`;
+      const startDate = `${filter.year}-01-01`;
+      const endDate = `${filter.year}-12-31`;
       query = query.gte('date', startDate).lte('date', endDate);
     }
 
@@ -303,7 +317,7 @@ export class HolidaysService extends BaseService<Holiday> {
       barber_id: holiday.barber_id,
       date: holiday.date,
       is_holiday: holiday.is_holiday,
-      custom_hours: holiday.custom_hours as any,
+      custom_hours: holiday.custom_hours,
       reason: holiday.reason,
     };
 
@@ -406,7 +420,7 @@ export class HolidaysService extends BaseService<Holiday> {
 
     // If multiple rows exist (shouldn't happen with unique constraint),
     // maybeSingle returns null, which is handled gracefully
-    return data ? this.transformSpecialDate(data) : null;
+    return data ? this.transformSpecialDate(data) : null; 
   }
 
   /**
@@ -428,21 +442,21 @@ export class HolidaysService extends BaseService<Holiday> {
     barbershopId: string,
     year: number
   ): Promise<Holiday[]> {
-    const _yearHolidays = this.argentineHolidays.filter((holiday) =>
+    const yearHolidays = this.argentineHolidays.filter((holiday) =>
       holiday.date.startsWith(year.toString())
     );
 
     const importedHolidays: Holiday[] = [];
 
     for (const holiday of yearHolidays) {
-      const _existingHoliday = await this.getHolidayByDate(
+      const existingHoliday = await this.getHolidayByDate(
         barbershopId,
         holiday.date
       );
 
       // Solo importar si no existe ya
       if (!existingHoliday) {
-        const _newHoliday = await this.createOrUpdateHoliday({
+        const newHoliday = await this.createOrUpdateHoliday({
           barbershop_id: barbershopId,
           barber_id: null,
           date: holiday.date,
@@ -465,7 +479,7 @@ export class HolidaysService extends BaseService<Holiday> {
     fromYear: number,
     toYear: number
   ): Promise<Holiday[]> {
-    const _previousYearHolidays = await this.getHolidaysByYear(
+    const previousYearHolidays = await this.getHolidaysByYear(
       barbershopId,
       fromYear
     );
@@ -474,20 +488,20 @@ export class HolidaysService extends BaseService<Holiday> {
     for (const holiday of previousYearHolidays) {
       // Solo copiar feriados personalizados (no nacionales)
       if (this.getHolidayType(holiday) === 'custom') {
-        const _newDate = holiday.date.replace(
+        const newDate = holiday.date.replace(
           fromYear.toString(),
           toYear.toString()
         );
 
         // Verificar que la fecha sea válida
         if (this.isValidDate(newDate)) {
-          const _existingHoliday = await this.getHolidayByDate(
+          const existingHoliday = await this.getHolidayByDate(
             barbershopId,
             newDate
           );
 
           if (!existingHoliday) {
-            const _copiedHoliday = await this.createOrUpdateHoliday({
+            const copiedHoliday = await this.createOrUpdateHoliday({
               barbershop_id: holiday.barbershop_id,
               barber_id: holiday.barber_id,
               date: newDate,
@@ -510,7 +524,7 @@ export class HolidaysService extends BaseService<Holiday> {
   async getAffectedAppointments(
     barbershopId: string,
     date: string
-  ): Promise<any[]> {
+  ): Promise<AffectedAppointment[]> {
     const { data, error } = await supabase
       .from('appointments')
       .select(
@@ -549,7 +563,7 @@ export class HolidaysService extends BaseService<Holiday> {
    * Determina el tipo de feriado basado en si está en la lista de feriados argentinos
    */
   private getHolidayType(holiday: Holiday): HolidayType {
-    const _isNational = this.argentineHolidays.some(
+    const isNational = this.argentineHolidays.some(
       (ah) => ah.date === holiday.date
     );
     if (isNational) return 'national';
@@ -570,7 +584,7 @@ export class HolidaysService extends BaseService<Holiday> {
    * Valida si una fecha es válida
    */
   private isValidDate(dateString: string): boolean {
-    const _date = new Date(dateString);
+    const date = new Date(dateString);
     return date instanceof Date && !isNaN(date.getTime());
   }
 
@@ -587,7 +601,7 @@ export class HolidaysService extends BaseService<Holiday> {
     closed: number;
     specialHours: number;
   }> {
-    const _holidays = await this.getHolidaysByYear(barbershopId, year);
+    const holidays = await this.getHolidaysByYear(barbershopId, year);
 
     return {
       total: holidays.length,
@@ -601,4 +615,4 @@ export class HolidaysService extends BaseService<Holiday> {
   }
 }
 
-export const _holidaysService = new HolidaysService();
+export const holidaysService = new HolidaysService();

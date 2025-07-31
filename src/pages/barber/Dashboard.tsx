@@ -1,9 +1,9 @@
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Calendar, Clock, DollarSign, Users } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar, Clock, DollarSign, Users } from 'lucide-react';
 
 export function BarberDashboard() {
   // TODO: Estos datos vendrán de Supabase
-  const _stats = {
+  const stats = {
     todayAppointments: 5,
     weekAppointments: 23,
     monthEarnings: 1250,

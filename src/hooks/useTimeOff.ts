@@ -1,10 +1,10 @@
-// // // // // import { useState, useCallback } from 'react'
-// // // // // import { useToast } from '@/hooks/use-toast'
-// // // // // import { useAuth } from '@/hooks/useAuth'
-// // // // // import { timeOffService, TimeOffWithBarber, TimeOffRequest, TimeOffFilters } from '@/services/time-off.service'
-// // // // // import { appointmentsService } from '@/services/appointments.service'
-// // // // // import { format, differenceInDays, isWeekend, eachDayOfInterval } from 'date-fns'
-// // // // // import { es } from 'date-fns/locale'
+import { useState, useCallback } from 'react'
+import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
+import { timeOffService, TimeOffWithBarber, TimeOffRequest, TimeOffFilters } from '@/services/time-off.service'
+import { appointmentsService } from '@/services/appointments.service'
+import { format, differenceInDays, isWeekend, eachDayOfInterval } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 interface UseTimeOffReturn {
   // Estados
@@ -43,7 +43,7 @@ export function useTimeOff(): UseTimeOffReturn {
   const { user } = useAuth();
 
   // Solicitar vacaciones
-  const _requestTimeOff = useCallback(
+  const requestTimeOff = useCallback(
     async (request: TimeOffRequest) => {
       setSubmitting(true);
       try {
@@ -71,11 +71,11 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Obtener solicitudes
-  const _getRequests = useCallback(
+  const getRequests = useCallback(
     async (filters?: TimeOffFilters) => {
       setLoading(true);
       try {
-        const _data = await timeOffService.getTimeOffRequests(filters);
+        const data = await timeOffService.getTimeOffRequests(filters);
         setRequests(data);
       } catch (error) {
         toast({
@@ -91,7 +91,7 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Cancelar solicitud
-  const _cancelRequest = useCallback(
+  const cancelRequest = useCallback(
     async (requestId: string) => {
       if (!user?.id) {
         toast({
@@ -126,7 +126,7 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Aprobar solicitud
-  const _approveRequest = useCallback(
+  const approveRequest = useCallback(
     async (requestId: string, notes?: string) => {
       if (!user?.id) {
         toast({
@@ -161,7 +161,7 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Rechazar solicitud
-  const _rejectRequest = useCallback(
+  const rejectRequest = useCallback(
     async (requestId: string, reason: string) => {
       if (!user?.id) {
         toast({
@@ -196,7 +196,7 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Verificar conflictos
-  const _checkConflicts = useCallback(
+  const checkConflicts = useCallback(
     async (barberId: string, startDate: string, endDate: string) => {
       try {
         return await timeOffService.checkTimeOffConflict(
@@ -213,7 +213,7 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Obtener citas afectadas
-  const _getAffectedAppointments = useCallback(
+  const getAffectedAppointments = useCallback(
     async (barberId: string, startDate: string, endDate: string) => {
       try {
         // Por ahora retornamos 0, pero esto podría implementarse con una consulta específica
@@ -228,9 +228,9 @@ export function useTimeOff(): UseTimeOffReturn {
   );
 
   // Calcular días laborables
-  const _calculateWorkingDays = useCallback(
+  const calculateWorkingDays = useCallback(
     (startDate: Date, endDate: Date) => {
-      const _days = eachDayOfInterval({ start: startDate, end: endDate });
+      const days = eachDayOfInterval({ start: startDate, end: endDate });
       return days.filter((day) => !isWeekend(day)).length;
     },
     []

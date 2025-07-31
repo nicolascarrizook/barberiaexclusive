@@ -1,5 +1,5 @@
-// // // // // import { vi } from 'vitest'
-// // // // // import { Barber, Service, TimeSlot } from '@/types'
+import { vi } from 'vitest'
+import { Barber, Service, TimeSlot } from '@/types'
 
 // Mock data para tests
 export const mockServices: Service[] = [
@@ -8,7 +8,7 @@ export const mockServices: Service[] = [
     name: 'Corte de Cabello',
     description: 'Corte profesional de cabello',
     price: 150,
-    duration: 30,
+    duration_minutes: 30,
     category: 'Cabello',
     barbershop_id: '1',
     is_active: true,
@@ -18,7 +18,7 @@ export const mockServices: Service[] = [
     name: 'Barba',
     description: 'Arreglo y diseño de barba',
     price: 100,
-    duration: 20,
+    duration_minutes: 20,
     category: 'Barba',
     barbershop_id: '1',
     is_active: true,
@@ -28,7 +28,7 @@ export const mockServices: Service[] = [
     name: 'Corte + Barba',
     description: 'Servicio completo de corte y barba',
     price: 220,
-    duration: 45,
+    duration_minutes: 45,
     category: 'Combos',
     barbershop_id: '1',
     is_active: true,
@@ -80,7 +80,7 @@ export const mockTimeSlots: TimeSlot[] = [
   { time: '12:00', available: true },
 ];
 
-export const _mockAuthUser = {
+export const mockAuthUser = {
   id: 'user123',
   email: 'test@example.com',
   user_metadata: {},
@@ -89,7 +89,7 @@ export const _mockAuthUser = {
   created_at: '2024-01-01T00:00:00.000Z',
 };
 
-export const _mockUserProfile = {
+export const mockUserProfile = {
   id: 'profile123',
   user_id: 'user123',
   full_name: 'Test User',
@@ -102,8 +102,8 @@ export const _mockUserProfile = {
 };
 
 // Mock de hooks
-export const _createMockUseToast = () => {
-  const _toast = vi.fn();
+export const createMockUseToast = () => {
+  const toast = vi.fn();
   return {
     toast,
     useToast: () => ({ toast }),
@@ -111,10 +111,18 @@ export const _createMockUseToast = () => {
 };
 
 // Mock de useNavigate
-export const _createMockNavigate = () => vi.fn();
+export const createMockNavigate = () => vi.fn();
 
 // Mock de AuthContext
-export const _createMockAuthContext = (overrides?: any) => ({
+export const createMockAuthContext = (overrides?: Partial<{
+  user: typeof mockAuthUser;
+  profile: typeof mockUserProfile;
+  loading: boolean;
+  signIn: ReturnType<typeof vi.fn>;
+  signUp: ReturnType<typeof vi.fn>;
+  signOut: ReturnType<typeof vi.fn>;
+  updateProfile: ReturnType<typeof vi.fn>;
+}>) => ({
   user: mockAuthUser,
   profile: mockUserProfile,
   loading: false,

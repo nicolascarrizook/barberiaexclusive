@@ -1,6 +1,6 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
 
 type Barber = Database['public']['Tables']['barbers']['Row'];
 type BarberInsert = Database['public']['Tables']['barbers']['Insert'];
@@ -76,7 +76,7 @@ class BarberService extends BaseService<Barber> {
 
   // Método simplificado para obtener barberos con la estructura esperada por BookingPage
   async getAll(options?: { filters?: { active?: boolean } }) {
-    const _query = supabase.from('barbers').select(`
+    let query = supabase.from('barbers').select(`
         *,
         profile:profiles!barbers_profile_id_fkey (
           id,
@@ -86,7 +86,7 @@ class BarberService extends BaseService<Barber> {
       `);
 
     if (options?.filters?.active !== undefined) {
-      query.eq('is_active', options.filters.active);
+      query = query.eq('is_active', options.filters.active);
     }
 
     const { data, error } = await query.order('display_name');
@@ -112,7 +112,7 @@ class BarberService extends BaseService<Barber> {
   }
 
   async getBarberSchedule(barberId: string, date: Date) {
-    const _dateStr = date.toISOString().split('T')[0];
+    const dateStr = date.toISOString().split('T')[0];
 
     const { data, error } = await supabase
       .from('barber_schedules')
@@ -149,10 +149,10 @@ class BarberService extends BaseService<Barber> {
   }
 
   async getBarberAppointments(barberId: string, date: Date) {
-    const _startOfDay = new Date(date);
+    const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
-    const _endOfDay = new Date(date);
+    const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
     const { data, error } = await supabase
@@ -223,7 +223,7 @@ class BarberService extends BaseService<Barber> {
     commission_percentage: number;
     can_accept_tips: boolean;
   }): Promise<{ invitation_code: string }> {
-    const _userId = (await supabase.auth.getUser()).data.user?.id;
+    const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
     // Start a transaction by creating invitation first
@@ -302,7 +302,7 @@ class BarberService extends BaseService<Barber> {
     barbershop_id?: string;
     invitation_type?: string;
   }> {
-    const _userId = (await supabase.auth.getUser()).data.user?.id;
+    const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) throw new Error('User not authenticated');
 
     const { data, error } = await supabase.rpc('claim_barber_invitation', {
@@ -315,4 +315,5 @@ class BarberService extends BaseService<Barber> {
   }
 }
 
-export const _barberService = new BarberService();
+export const barbersService = new BarberService();
+export const barberService = barbersService; // Legacy alias for compatibility

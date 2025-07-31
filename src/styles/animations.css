@@ -1,0 +1,162 @@
+/* Premium loading animations utilities */
+
+/* Minimalist scissors animations */
+@keyframes scissors-morph {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-15deg);
+  }
+  50% {
+    transform: scale(0.9) rotate(15deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(-5deg);
+  }
+}
+
+@keyframes scissors-top-blade {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-25deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(25deg);
+  }
+}
+
+@keyframes scissors-bottom-blade {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(25deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-25deg);
+  }
+}
+
+@keyframes scissors-pivot {
+  0%, 100% {
+    r: 4;
+    opacity: 0.8;
+  }
+  50% {
+    r: 6;
+    opacity: 1;
+  }
+}
+
+@keyframes scissors-handle-left {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-5px, -5px);
+  }
+  75% {
+    transform: translate(3px, 3px);
+  }
+}
+
+@keyframes scissors-handle-right {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(5px, -5px);
+  }
+  75% {
+    transform: translate(-3px, 3px);
+  }
+}
+
+@keyframes breathe-slow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.2);
+  }
+}
+
+/* Animation delays */
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-900 {
+  animation-delay: 900ms;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1000ms;
+}
+
+/* Smooth transitions for reduced motion users */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-spin-slow,
+  .animate-spin-reverse,
+  .animate-spin-fast,
+  .animate-breathe,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-ping,
+  .animate-wave,
+  .animate-scissors {
+    animation: none;
+  }
+  
+  .transition-all {
+    transition-property: none;
+  }
+}
+
+/* Premium gradient backgrounds */
+.bg-gradient-premium {
+  background: linear-gradient(135deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--primary) / 0.8) 50%, 
+    hsl(var(--secondary)) 100%
+  );
+}
+
+/* Glass morphism effect */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Premium shadow effects */
+.shadow-premium {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-premium-lg {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+}

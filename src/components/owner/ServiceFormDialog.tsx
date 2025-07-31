@@ -1,9 +1,9 @@
 import {useEffect} from 'react';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import { useMutation, useQueryClient } from '@tanstack/react-query';
-// // // // // import {
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -11,18 +11,19 @@ import {useEffect} from 'react';
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Textarea } from '@/components/ui/textarea';
-// // // // // import {
+import { Button } from '@/components/ui/button';
+import { SaveButton } from '@/components/ui/loading-button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-// // // // // import {
+import {
   Form,
   FormControl,
   FormDescription,
@@ -31,11 +32,11 @@ import {useEffect} from 'react';
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { servicesService } from '@/services/services.service';
-// // // // // import { Save, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { servicesService } from '@/services/services.service';
+import { Save } from 'lucide-react';
 
-const _serviceSchema = z.object({
+const serviceSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
   category: z.enum(['Corte', 'Barba', 'Tratamientos'], {
@@ -67,7 +68,7 @@ interface ServiceFormDialogProps {
   barbershopId?: string;
 }
 
-const _categories = [
+const categories = [
   { value: 'Corte', label: 'Corte' },
   { value: 'Barba', label: 'Barba' },
   { value: 'Tratamientos', label: 'Tratamientos' },
@@ -80,9 +81,9 @@ export function ServiceFormDialog({
   barbershopId 
 }: ServiceFormDialogProps) {
   const { toast } = useToast();
-  const _queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-  const _form = useForm<ServiceFormData>({
+  const form = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: '',
@@ -117,7 +118,7 @@ export function ServiceFormDialog({
     }
   }, [service, form, open]);
 
-  const _createMutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: async (data: ServiceFormData) => {
       if (!barbershopId) throw new Error('No barbershop ID');
       
@@ -151,7 +152,7 @@ export function ServiceFormDialog({
     },
   });
 
-  const _updateMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: async (data: ServiceFormData) => {
       if (!service?.id) throw new Error('No service ID');
       
@@ -182,7 +183,7 @@ export function ServiceFormDialog({
     },
   });
 
-  const _onSubmit = async (data: ServiceFormData) => {
+  const onSubmit = async (data: ServiceFormData) => {
     if (service) {
       updateMutation.mutate(data);
     } else {
@@ -190,7 +191,7 @@ export function ServiceFormDialog({
     }
   };
 
-  const _isLoading = createMutation.isPending || updateMutation.isPending;
+  const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -350,11 +351,13 @@ export function ServiceFormDialog({
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Save className="mr-2 h-4 w-4" />
+              <SaveButton 
+                type="submit" 
+                loading={isLoading}
+                icon={<Save className="h-4 w-4" />}
+              >
                 {service ? 'Actualizar' : 'Crear'} servicio
-              </Button>
+              </SaveButton>
             </DialogFooter>
           </form>
         </Form>

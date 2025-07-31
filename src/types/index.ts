@@ -10,7 +10,7 @@ export interface Barber {
 export interface Service {
   id: string;
   name: string;
-  duration: number; // in minutes
+  duration_minutes: number; // in minutes
   price: number;
   description?: string;
 }
@@ -18,6 +18,12 @@ export interface Service {
 export interface TimeSlot {
   time: string;
   available: boolean;
+  reason?: 'appointment' | 'break' | 'time_off' | 'closed' | 'outside_hours';
+  reasonText?: string;
+  appointmentInfo?: {
+    customerName?: string;
+    serviceName?: string;
+  };
 }
 
 export interface Appointment {
@@ -32,7 +38,7 @@ export interface Appointment {
   serviceName: string;
   date: Date;
   time: string;
-  duration: number;
+  duration_minutes: number;
   price: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   notes?: string;

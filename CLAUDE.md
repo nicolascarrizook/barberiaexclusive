@@ -28,7 +28,6 @@ npm run test                   # Run tests in watch mode
 npm run test:ui                # Open Vitest UI
 npm run test:run               # Run tests once
 npm run test:coverage          # Generate coverage report
-npm run test:watch             # Alias for watch mode
 npm run test:related           # Run tests related to staged files
 
 # Run specific test file

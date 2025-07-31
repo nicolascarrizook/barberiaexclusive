@@ -1,6 +1,6 @@
-// // // // // import { useCallback, useState } from 'react';
-// // // // // import { errorLogger } from '@/utils/errorLogger';
-// // // // // import { useToast } from '@/hooks/use-toast';
+import { useCallback, useState } from 'react';
+import { errorLogger } from '@/utils/errorLogger';
+import { useToast } from '@/hooks/use-toast';
 
 interface UseErrorHandlerOptions {
   showToast?: boolean;
@@ -14,13 +14,13 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
   const [error, setError] = useState<Error | null>(null);
   const [isError, setIsError] = useState(false);
 
-  const _resetError = useCallback(() => {
+  const resetError = useCallback(() => {
     setError(null);
     setIsError(false);
   }, []);
 
-  const _handleError = useCallback(
-    (error: Error, context?: Record<string, any>) => {
+  const handleError = useCallback(
+    (error: Error, context?: Record<string, unknown>) => {
       setError(error);
       setIsError(true);
 
@@ -46,12 +46,12 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     [logError, showToast, toast, onError]
   );
 
-  const _captureError = useCallback(
-    (error: unknown, context?: Record<string, any>): void => {
+  const captureError = useCallback(
+    (error: unknown, context?: Record<string, unknown>): void => {
       if (error instanceof Error) {
         handleError(error, context);
       } else {
-        const _syntheticError = new Error(
+        const syntheticError = new Error(
           typeof error === 'string' ? error : 'Unknown error occurred'
         );
         handleError(syntheticError, { ...context, originalError: error });
@@ -60,10 +60,10 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     [handleError]
   );
 
-  const _executeAsync = useCallback(
+  const executeAsync = useCallback(
     async <T>(
       asyncFn: () => Promise<T>,
-      context?: Record<string, any>
+      context?: Record<string, unknown>
     ): Promise<T | null> => {
       try {
         resetError();
@@ -76,8 +76,8 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     [captureError, resetError]
   );
 
-  const _execute = useCallback(
-    <T>(fn: () => T, context?: Record<string, any>): T | null => {
+  const execute = useCallback(
+    <T>(fn: () => T, context?: Record<string, unknown>): T | null => {
       try {
         resetError();
         return fn();

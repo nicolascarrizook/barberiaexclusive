@@ -1,16 +1,16 @@
-// // // // // import { useState } from 'react';
-// // // // // import { Link, useNavigate, useLocation } from 'react-router-dom';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
-const _loginSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
@@ -23,14 +23,14 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
-  const _navigate = useNavigate();
-  const _location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const _defaultRedirect = location.state?.from?.pathname || '/';
-  const _finalRedirect =
+  const defaultRedirect = location.state?.from?.pathname || '/';
+  const finalRedirect =
     redirectTo === false ? null : redirectTo || defaultRedirect;
 
   const {
@@ -41,7 +41,7 @@ export function LoginForm({ onSuccess, redirectTo }: LoginFormProps) {
     resolver: zodResolver(loginSchema),
   });
 
-  const _onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
       await signIn(data);

@@ -1,22 +1,22 @@
-// // // // // import { useState } from 'react';
-// // // // // import { useNavigate, Link } from 'react-router-dom';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Textarea } from '@/components/ui/textarea';
-// // // // // import { Switch } from '@/components/ui/switch';
-// // // // // import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { useAuth } from '@/hooks/useAuth';
-// // // // // import { barbershopService } from '@/services/barbershops.service';
-// // // // // import { ArrowLeft, Save, Store, Clock, Calendar, DollarSign } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { barbershopService } from '@/services/barbershops.service';
+import { ArrowLeft, Save, Store, Clock, Calendar, DollarSign } from 'lucide-react';
 
 // Schema de validación
-const _createBarbershopSchema = z.object({
+const createBarbershopSchema = z.object({
   // Información básica
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
@@ -44,12 +44,12 @@ const _createBarbershopSchema = z.object({
 type CreateBarbershopFormData = z.infer<typeof createBarbershopSchema>;
 
 export function CreateBarbershop() {
-  const _navigate = useNavigate();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const _form = useForm<CreateBarbershopFormData>({
+  const form = useForm<CreateBarbershopFormData>({
     resolver: zodResolver(createBarbershopSchema),
     defaultValues: {
       name: '',
@@ -72,9 +72,9 @@ export function CreateBarbershop() {
     },
   });
 
-  const _watchRequireDeposit = form.watch('require_deposit');
+  const watchRequireDeposit = form.watch('require_deposit');
 
-  const _generateSlug = (name: string): string => {
+  const generateSlug = (name: string): string => {
     return name
       .toLowerCase()
       .trim()
@@ -83,7 +83,7 @@ export function CreateBarbershop() {
       .replace(/-+/g, '-');
   };
 
-  const _onSubmit = async (data: CreateBarbershopFormData) => {
+  const onSubmit = async (data: CreateBarbershopFormData) => {
     if (!user?.id) {
       toast({
         title: 'Error',
@@ -96,10 +96,10 @@ export function CreateBarbershop() {
     setIsSubmitting(true);
 
     try {
-      const _slug = generateSlug(data.name);
+      const slug = generateSlug(data.name);
 
       // Preparar los datos para la creación
-      const _barbershopData = {
+      const barbershopData = {
         owner_id: user.id,
         name: data.name,
         slug,

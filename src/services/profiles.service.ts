@@ -1,5 +1,5 @@
-// // // // // import { BaseService } from './base.service';
-// // // // // import { Database } from '@/types/database';
+import { BaseService } from './base.service';
+import { Database } from '@/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
@@ -22,4 +22,4 @@ class ProfileService extends BaseService<Profile> {
   }
 }
 
-export const _profileService = new ProfileService();
+export const profileService = new ProfileService();

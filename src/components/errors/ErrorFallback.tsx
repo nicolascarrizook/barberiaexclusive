@@ -1,10 +1,10 @@
-// // // // // import { AlertCircle, Home, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { useState } from 'react';
-// // // // // import { useNavigate } from 'react-router-dom';
-// // // // // import { ErrorFallbackProps } from './ErrorBoundary';
+import { AlertCircle, Home, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ErrorFallbackProps } from './ErrorBoundary';
 
 export function ErrorFallback({
   error,
@@ -12,16 +12,16 @@ export function ErrorFallback({
   resetError,
   level = 'component',
 }: ErrorFallbackProps) {
-  const _navigate = useNavigate();
+  const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
-  const _isDevelopment = import.meta.env.DEV;
+  const isDevelopment = import.meta.env.DEV;
 
-  const _handleGoHome = () => {
+  const handleGoHome = () => {
     navigate('/');
     resetError();
   };
 
-  const _getErrorMessage = () => {
+  const getErrorMessage = () => {
     switch (level) {
       case 'page':
         return 'Ha ocurrido un error al cargar esta página.';
@@ -32,7 +32,7 @@ export function ErrorFallback({
     }
   };
 
-  const _getErrorTitle = () => {
+  const getErrorTitle = () => {
     switch (level) {
       case 'page':
         return 'Error en la página';

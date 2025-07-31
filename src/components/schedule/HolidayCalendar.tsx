@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-// // // // // import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// // // // // import { useForm, Controller } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import {
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import { Label } from '@/components/ui/label';
-// // // // // import { Switch } from '@/components/ui/switch';
-// // // // // import { Badge } from '@/components/ui/badge';
-// // // // // import {
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,14 +24,14 @@ import React, { useState, useEffect } from 'react';
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-// // // // // import {
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-// // // // // import {
+import {
   Form,
   FormControl,
   FormDescription,
@@ -40,11 +40,11 @@ import React, { useState, useEffect } from 'react';
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// // // // // import { Textarea } from '@/components/ui/textarea';
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert';
-// // // // // import { Separator } from '@/components/ui/separator';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import {
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import {
   Calendar,
   Plus,
   Import,
@@ -61,7 +61,7 @@ import React, { useState, useEffect } from 'react';
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-// // // // // import {
+import {
   holidaysService,
   Holiday,
   HolidayFilter,
@@ -73,7 +73,7 @@ interface HolidayCalendarProps {
 }
 
 // Schema de validación para el formulario de feriado
-const _holidaySchema = z.object({
+const holidaySchema = z.object({
   date: z.string().min(1, 'La fecha es requerida'),
   reason: z.string().min(1, 'El motivo es requerido'),
   is_closed: z.boolean(),
@@ -90,7 +90,7 @@ const _holidaySchema = z.object({
 type HolidayFormData = z.infer<typeof holidaySchema>;
 
 // Colores para los diferentes tipos de feriados
-const _HOLIDAY_COLORS = {
+const HOLIDAY_COLORS = {
   national: 'bg-blue-100 text-blue-800 border-blue-200',
   custom: 'bg-purple-100 text-purple-800 border-purple-200',
   closed: 'bg-red-100 text-red-800 border-red-200',
@@ -98,13 +98,13 @@ const _HOLIDAY_COLORS = {
 } as const;
 
 // Nombres de los meses en español
-const _MONTH_NAMES = [
+const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
 // Nombres de los días de la semana en español
-const _DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 /**
  * Componente principal del calendario de feriados
@@ -120,10 +120,10 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   const [showFilters, setShowFilters] = useState(false);
 
   const { toast } = useToast();
-  const _queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   // Formulario para crear/editar feriados
-  const _form = useForm<HolidayFormData>({
+  const form = useForm<HolidayFormData>({
     resolver: zodResolver(holidaySchema),
     defaultValues: {
       is_closed: true,
@@ -164,7 +164,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   });
 
   // Mutation para crear/actualizar feriado
-  const _createOrUpdateHolidayMutation = useMutation({
+  const createOrUpdateHolidayMutation = useMutation({
     mutationFn: (holiday: Omit<Holiday, 'id' | 'created_at'>) =>
       holidaysService.createOrUpdateHoliday(holiday),
     onSuccess: () => {
@@ -187,7 +187,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   });
 
   // Mutation para importar feriados argentinos
-  const _importArgentineHolidaysMutation = useMutation({
+  const importArgentineHolidaysMutation = useMutation({
     mutationFn: (year: number) =>
       holidaysService.importArgentineHolidays(barbershopId, year),
     onSuccess: (importedHolidays) => {
@@ -209,7 +209,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   });
 
   // Mutation para copiar feriados del año anterior
-  const _copyHolidaysMutation = useMutation({
+  const copyHolidaysMutation = useMutation({
     mutationFn: ({ fromYear, toYear }: { fromYear: number; toYear: number }) =>
       holidaysService.copyHolidaysFromPreviousYear(barbershopId, fromYear, toYear),
     onSuccess: (copiedHolidays) => {
@@ -231,7 +231,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   });
 
   // Mutation para eliminar feriado
-  const _deleteHolidayMutation = useMutation({
+  const deleteHolidayMutation = useMutation({
     mutationFn: (date: string) =>
       holidaysService.deleteHolidayByDate(barbershopId, date),
     onSuccess: () => {
@@ -252,23 +252,23 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   });
 
   // Función para obtener el feriado de una fecha específica
-  const _getHolidayForDate = (date: Date): Holiday | null => {
-    const _dateString = date.toISOString().split('T')[0];
+  const getHolidayForDate = (date: Date): Holiday | null => {
+    const dateString = date.toISOString().split('T')[0];
     return holidays.find(holiday => holiday.date === dateString) || null;
   };
 
   // Función para determinar el tipo de feriado
-  const _getHolidayType = (holiday: Holiday): keyof typeof HOLIDAY_COLORS => {
-    const _isNational = availableArgentineHolidays.some(ah => ah.date === holiday.date);
+  const getHolidayType = (holiday: Holiday): keyof typeof HOLIDAY_COLORS => {
+    const isNational = availableArgentineHolidays.some(ah => ah.date === holiday.date);
     if (isNational) return 'national';
     if (!holiday.custom_hours) return 'closed';
     return 'special_hours';
   };
 
   // Función para abrir el diálogo de edición con una fecha seleccionada
-  const _openHolidayDialog = (date?: string) => {
+  const openHolidayDialog = (date?: string) => {
     if (date) {
-      const _existingHoliday = holidays.find(h => h.date === date);
+      const existingHoliday = holidays.find(h => h.date === date);
       if (existingHoliday) {
         form.reset({
           date: existingHoliday.date,
@@ -290,7 +290,7 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   };
 
   // Función para manejar el submit del formulario
-  const _onSubmit = (data: HolidayFormData) => {
+  const onSubmit = (data: HolidayFormData) => {
     const holidayData: Omit<Holiday, 'id' | 'created_at'> = {
       barbershop_id: barbershopId,
       barber_id: null,
@@ -304,12 +304,12 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   };
 
   // Función para generar el calendario del mes
-  const _generateMonthCalendar = (monthIndex: number) => {
-    const _year = selectedYear;
-    const _firstDay = new Date(year, monthIndex, 1);
-    const _lastDay = new Date(year, monthIndex + 1, 0);
-    const _daysInMonth = lastDay.getDate();
-    const _startingDayOfWeek = firstDay.getDay();
+  const generateMonthCalendar = (monthIndex: number) => {
+    const year = selectedYear;
+    const firstDay = new Date(year, monthIndex, 1);
+    const lastDay = new Date(year, monthIndex + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
 
     const days: (Date | null)[] = [];
 
@@ -327,14 +327,14 @@ export const HolidayCalendar: React.FC<HolidayCalendarProps> = ({ barbershopId }
   };
 
   // Renderizar un día del calendario
-  const _renderCalendarDay = (date: Date | null) => {
+  const renderCalendarDay = (date: Date | null) => {
     if (!date) {
       return <div className="h-8 w-8"></div>;
     }
 
-    const _holiday = getHolidayForDate(date);
-    const _isToday = date.toDateString() === new Date().toDateString();
-    const _dayNumber = date.getDate();
+    const holiday = getHolidayForDate(date);
+    const isToday = date.toDateString() === new Date().toDateString();
+    const dayNumber = date.getDate();
 
     return (
       <div

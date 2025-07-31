@@ -1,15 +1,26 @@
-import {useEffect} from 'react';
-// // // // // import { BookingFlow } from '@/components/booking/BookingFlow';
-// // // // // import { Service, Barber, TimeSlot } from '@/types';
-// // // // // import { useQuery } from '@tanstack/react-query';
-// // // // // import { servicesService } from '@/services/services.service';
-// // // // // import { barberService } from '@/services/barbers.service';
-// // // // // import { availabilityService } from '@/services/availability.service';
-// // // // // import { useToast } from '@/hooks/use-toast';
-// // // // // import { Skeleton } from '@/components/ui/skeleton';
-// // // // // import { Card, CardContent } from '@/components/ui/card';
-// // // // // import { AlertCircle } from 'lucide-react';
-// // // // // import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEffect, useState } from 'react';
+import { BookingFlow } from '@/components/booking/BookingFlow';
+import { Service, Barber, TimeSlot } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import { servicesService } from '@/services/services.service';
+import { barbersService } from '@/services/barbers.service';
+import { availabilityService } from '@/services/availability.service';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const getReasonText = (reason: string): string => {
+  const reasonTexts = {
+    appointment: 'Cita reservada',
+    break: 'Horario de descanso',
+    time_off: 'Vacaciones',
+    closed: 'Barbería cerrada',
+    outside_hours: 'Fuera de horario'
+  };
+  return reasonTexts[reason as keyof typeof reasonTexts] || 'No disponible';
+};
 
 export function BookingPage() {
   const { toast } = useToast();
@@ -26,11 +37,23 @@ export function BookingPage() {
   } = useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      const _data = await servicesService.getAll({
-        filters: { active: true },
-        sort: { field: 'price', direction: 'asc' },
-      });
-      return data;
+      console.log('Loading services...');
+      try {
+        const data = await servicesService.getAll({
+          filters: { active: true },
+        });
+        console.log('Services loaded:', data);
+        if (!data || data.length === 0) {
+          console.warn('No active services found in database');
+        }
+        return data;
+      } catch (error) {
+        console.error('Error loading services:', error);
+        throw error;
+      }
+    },
+    onError: (error) => {
+      console.error('Services query failed:', error);
     },
   });
 
@@ -42,26 +65,45 @@ export function BookingPage() {
   } = useQuery({
     queryKey: ['barbers'],
     queryFn: async () => {
-      const _data = await barberService.getAll({
-        filters: { active: true },
-      });
-      // Transform barber data to match the expected format
-      return data.map((barber) => ({
-        id: barber.id,
-        name: barber.full_name,
-        avatar:
-          barber.avatar_url ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(barber.full_name)}&background=random`,
-        specialties: barber.specialties || [],
-        available: barber.active,
-        barbershop_id: barber.barbershop_id,
-      }));
+      console.log('Loading barbers...');
+      try {
+        const data = await barbersService.getAll({
+          filters: { active: true },
+        });
+        console.log('Raw barbers data:', data);
+        
+        if (!data || data.length === 0) {
+          console.warn('No active barbers found in database');
+          return [];
+        }
+        
+        // Transform barber data to match the expected format
+        const transformedData = data.map((barber) => ({
+          id: barber.id,
+          name: barber.display_name || barber.full_name,
+          avatar:
+            barber.avatar_url ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(barber.display_name || barber.full_name)}&background=random`,
+          specialties: barber.specialties || [],
+          available: barber.active,
+          barbershop_id: barber.barbershop_id,
+        }));
+        
+        console.log('Transformed barbers:', transformedData);
+        return transformedData;
+      } catch (error) {
+        console.error('Error loading barbers:', error);
+        throw error;
+      }
+    },
+    onError: (error) => {
+      console.error('Barbers query failed:', error);
     },
   });
 
   // Fetch available time slots when service, barber and date are selected
   useEffect(() => {
-    const _fetchAvailableSlots = async () => {
+    const fetchAvailableSlots = async () => {
       if (!selectedService || !selectedBarber || !selectedDate) {
         setAvailableSlots([]);
         return;
@@ -73,11 +115,11 @@ export function BookingPage() {
       }
 
       try {
-        const _dayAvailability = await availabilityService.getDayAvailability({
+        const dayAvailability = await availabilityService.getDayAvailability({
           barber_id: selectedBarber.id,
           barbershop_id: selectedBarber.barbershop_id,
           date: selectedDate.toISOString().split('T')[0],
-          service_duration: selectedService.duration,
+          service_duration: selectedService.duration_minutes,
         });
 
         // Transform the availability slots to the expected format
@@ -85,6 +127,8 @@ export function BookingPage() {
           (slot) => ({
             time: slot.start.substring(0, 5), // Extract HH:MM from HH:MM:SS
             available: slot.available,
+            reason: slot.reason,
+            reasonText: slot.reason ? getReasonText(slot.reason) : undefined,
           })
         );
 
@@ -150,15 +194,15 @@ export function BookingPage() {
   }
 
   // Custom handler to track selections for availability
-  const _handleServiceSelect = (service: Service | null) => {
+  const handleServiceSelect = (service: Service | null) => {
     setSelectedService(service);
   };
 
-  const _handleBarberSelect = (barber: Barber | null) => {
+  const handleBarberSelect = (barber: Barber | null) => {
     setSelectedBarber(barber);
   };
 
-  const _handleDateSelect = (date: Date | null) => {
+  const handleDateSelect = (date: Date | null) => {
     setSelectedDate(date);
   };
 

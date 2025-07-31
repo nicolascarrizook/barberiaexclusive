@@ -1,19 +1,19 @@
-// // // // // import { useState } from "react";
-// // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Badge } from "@/components/ui/badge";
-// // // // // import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// // // // // import {
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// // // // // import { Appointment, Barber } from "@/types";
-// // // // // import { format, startOfWeek, addDays, isSameDay, setHours, setMinutes } from "date-fns";
-// // // // // import { es } from "date-fns/locale";
-// // // // // import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
+import { Appointment, Barber } from "@/types";
+import { format, startOfWeek, addDays, isSameDay, setHours, setMinutes } from "date-fns";
+import { es } from "date-fns/locale";
+import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
 
 interface BarberCalendarProps {
   barber: Barber;
@@ -23,38 +23,38 @@ interface BarberCalendarProps {
 
 type ViewType = 'day' | 'week';
 
-const _WORK_HOURS = Array.from({ length: 11 }, (_, i) => i + 9); // 9 AM to 7 PM
+const WORK_HOURS = Array.from({ length: 11 }, (_, i) => i + 9); // 9 AM to 7 PM
 
 export function BarberCalendar({ barber, appointments, onAppointmentClick }: BarberCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState<ViewType>('day');
 
-  const _navigateDate = (direction: 'prev' | 'next') => {
-    const _days = viewType === 'day' ? 1 : 7;
-    const _newDate = new Date(currentDate);
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const days = viewType === 'day' ? 1 : 7;
+    const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + (direction === 'next' ? days : -days));
     setCurrentDate(newDate);
   };
 
-  const _goToToday = () => {
+  const goToToday = () => {
     setCurrentDate(new Date());
   };
 
-  const _getWeekDays = () => {
-    const _start = startOfWeek(currentDate, { locale: es });
+  const getWeekDays = () => {
+    const start = startOfWeek(currentDate, { locale: es });
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   };
 
-  const _getAppointmentForSlot = (date: Date, hour: number) => {
+  const getAppointmentForSlot = (date: Date, hour: number) => {
     return appointments.find(apt => {
-      const _aptDate = new Date(apt.date);
-      const _aptHour = parseInt(apt.time.split(':')[0]);
+      const aptDate = new Date(apt.date);
+      const aptHour = parseInt(apt.time.split(':')[0]);
       return isSameDay(aptDate, date) && aptHour === hour && apt.barberId === barber.id;
     });
   };
 
-  const _getStatusColor = (status: Appointment['status']) => {
-    const _colors = {
+  const getStatusColor = (status: Appointment['status']) => {
+    const colors = {
       pending: 'bg-yellow-100 border-yellow-300 text-yellow-800',
       confirmed: 'bg-green-100 border-green-300 text-green-800',
       cancelled: 'bg-red-100 border-red-300 text-red-800',
@@ -63,12 +63,12 @@ export function BarberCalendar({ barber, appointments, onAppointmentClick }: Bar
     return colors[status];
   };
 
-  const _renderDayView = () => {
+  const renderDayView = () => {
     return (
       <div className="space-y-2">
         {WORK_HOURS.map(hour => {
-          const _appointment = getAppointmentForSlot(currentDate, hour);
-          const _timeString = `${hour.toString().padStart(2, '0')}:00`;
+          const appointment = getAppointmentForSlot(currentDate, hour);
+          const timeString = `${hour.toString().padStart(2, '0')}:00`;
 
           return (
             <div key={hour} className="flex gap-4 items-start">
@@ -88,7 +88,7 @@ export function BarberCalendar({ barber, appointments, onAppointmentClick }: Bar
                           <p className="text-sm">{appointment.serviceName}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <Clock className="h-3 w-3" />
-                            <span className="text-xs">{appointment.duration} min</span>
+                            <span className="text-xs">{appointment.duration_minutes} min</span>
                           </div>
                         </div>
                         <Badge variant="secondary" className="text-xs">
@@ -110,8 +110,8 @@ export function BarberCalendar({ barber, appointments, onAppointmentClick }: Bar
     );
   };
 
-  const _renderWeekView = () => {
-    const _weekDays = getWeekDays();
+  const renderWeekView = () => {
+    const weekDays = getWeekDays();
 
     return (
       <div className="overflow-x-auto">
@@ -138,7 +138,7 @@ export function BarberCalendar({ barber, appointments, onAppointmentClick }: Bar
                   {`${hour.toString().padStart(2, '0')}:00`}
                 </td>
                 {weekDays.map(day => {
-                  const _appointment = getAppointmentForSlot(day, hour);
+                  const appointment = getAppointmentForSlot(day, hour);
                   return (
                     <td key={day.toISOString()} className="p-1 border-l">
                       {appointment ? (

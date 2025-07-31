@@ -10,7 +10,14 @@
       "Bash(rm:*)",
       "Bash(git reset:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)",
+      "Bash(sed:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run type-check:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

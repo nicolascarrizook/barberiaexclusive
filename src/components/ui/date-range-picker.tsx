@@ -1,13 +1,13 @@
 import * as React from "react"
-// // // // // import { CalendarIcon } from "lucide-react"
-// // // // // import { format } from "date-fns"
-// // // // // import { es } from "date-fns/locale"
-// // // // // import { DateRange } from "react-day-picker"
+import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { DateRange } from "react-day-picker"
 
-// // // // // import { cn } from "@/lib/utils"
-// // // // // import { Button } from "@/components/ui/button"
-// // // // // import { Calendar } from "@/components/ui/calendar"
-// // // // // import {
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -34,7 +34,7 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false)
 
-  const _handleSelect = (newDate: DateRange | undefined) => {
+  const handleSelect = (newDate: DateRange | undefined) => {
     onDateChange?.(newDate)
     // Solo cerrar si ambas fechas están seleccionadas
     if (newDate?.from && newDate?.to) {

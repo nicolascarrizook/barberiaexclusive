@@ -1,11 +1,11 @@
-// // // // // import { describe, it, expect, vi } from 'vitest'
-// // // // // import { render, screen } from '@/test/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@/test/test-utils'
 import userEvent from '@testing-library/user-event';
-// // // // // import { ServiceSelection } from '../ServiceSelection'
-// // // // // import { mockServices } from '@/test/mocks/handlers'
+import { ServiceSelection } from '../ServiceSelection'
+import { mockServices } from '@/test/mocks/handlers'
 
 describe('ServiceSelection', () => {
-  const _defaultProps = {
+  const defaultProps = {
     services: mockServices,
     selectedService: undefined,
     onSelectService: vi.fn(),
@@ -19,7 +19,7 @@ describe('ServiceSelection', () => {
       expect(screen.getByText(service.name)).toBeInTheDocument();
       expect(screen.getByText(service.description)).toBeInTheDocument();
       expect(screen.getByText(`$${service.price}`)).toBeInTheDocument();
-      expect(screen.getByText(`${service.duration} min`)).toBeInTheDocument();
+      expect(screen.getByText(`${service.duration_minutes} min`)).toBeInTheDocument();
     });
   });
 
@@ -27,35 +27,35 @@ describe('ServiceSelection', () => {
     render(<ServiceSelection {...defaultProps} />);
 
     // Verificar que existe el contenedor grid
-    const _gridContainer = screen
+    const gridContainer = screen
       .getByText(mockServices[0].name)
       .closest('.grid');
     expect(gridContainer).toHaveClass('gap-4', 'md:grid-cols-2');
   });
 
   it('permite seleccionar un servicio', async () => {
-    const _user = userEvent.setup();
-    const _onSelectService = vi.fn();
+    const user = userEvent.setup();
+    const onSelectService = vi.fn();
 
     render(
       <ServiceSelection {...defaultProps} onSelectService={onSelectService} />
     );
 
-    const _firstService = screen.getByText(mockServices[0].name);
+    const firstService = screen.getByText(mockServices[0].name);
     await user.click(firstService);
 
     expect(onSelectService).toHaveBeenCalledWith(mockServices[0]);
   });
 
   it('muestra el servicio seleccionado con estilo diferente', () => {
-    const _selectedService = mockServices[0];
+    const selectedService = mockServices[0];
 
     render(
       <ServiceSelection {...defaultProps} selectedService={selectedService} />
     );
 
     // El servicio seleccionado debería tener un ring
-    const _serviceCard = screen
+    const serviceCard = screen
       .getByText(selectedService.name)
       .closest('.cursor-pointer');
     expect(serviceCard).toHaveClass('ring-2', 'ring-primary');
@@ -64,7 +64,7 @@ describe('ServiceSelection', () => {
   it('desactiva el botón siguiente cuando no hay servicio seleccionado', () => {
     render(<ServiceSelection {...defaultProps} />);
 
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     expect(nextButton).toBeDisabled();
   });
 
@@ -73,13 +73,13 @@ describe('ServiceSelection', () => {
       <ServiceSelection {...defaultProps} selectedService={mockServices[0]} />
     );
 
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     expect(nextButton).toBeEnabled();
   });
 
   it('llama a onNext cuando se hace click en siguiente', async () => {
-    const _user = userEvent.setup();
-    const _onNext = vi.fn();
+    const user = userEvent.setup();
+    const onNext = vi.fn();
 
     render(
       <ServiceSelection
@@ -89,14 +89,14 @@ describe('ServiceSelection', () => {
       />
     );
 
-    const _nextButton = screen.getByRole('button', { name: /siguiente/i });
+    const nextButton = screen.getByRole('button', { name: /siguiente/i });
     await user.click(nextButton);
 
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 
   it('muestra todos los servicios activos e inactivos', () => {
-    const _servicesWithInactive = [
+    const servicesWithInactive = [
       ...mockServices,
       {
         ...mockServices[0],
@@ -123,8 +123,8 @@ describe('ServiceSelection', () => {
   });
 
   it('permite cambiar la selección de servicio', async () => {
-    const _user = userEvent.setup();
-    const _onSelectService = vi.fn();
+    const user = userEvent.setup();
+    const onSelectService = vi.fn();
 
     render(
       <ServiceSelection
@@ -135,7 +135,7 @@ describe('ServiceSelection', () => {
     );
 
     // Seleccionar un servicio diferente
-    const _secondService = screen.getByText(mockServices[1].name);
+    const secondService = screen.getByText(mockServices[1].name);
     await user.click(secondService);
 
     expect(onSelectService).toHaveBeenCalledWith(mockServices[1]);

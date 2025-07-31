@@ -1,7 +1,7 @@
-// // // // // import { renderHook, act } from '@testing-library/react'
-// // // // // import { describe, it, expect, vi, beforeEach } from 'vitest'
-// // // // // import { useTimeOff } from '../useTimeOff'
-// // // // // import { addDays, isWeekend } from 'date-fns'
+import { renderHook, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { useTimeOff } from '../useTimeOff'
+import { addDays, isWeekend } from 'date-fns'
 
 // Mock de los servicios
 vi.mock('@/services/time-off.service', () => ({
@@ -55,10 +55,10 @@ describe('useTimeOff', () => {
     const { result } = renderHook(() => useTimeOff());
 
     // Probar con un rango que incluye fin de semana
-    const _startDate = new Date('2024-01-15'); // Lunes
-    const _endDate = new Date('2024-01-19'); // Viernes
+    const startDate = new Date('2024-01-15'); // Lunes
+    const endDate = new Date('2024-01-19'); // Viernes
 
-    const _workingDays = result.current.calculateWorkingDays(
+    const workingDays = result.current.calculateWorkingDays(
       startDate,
       endDate
     );
@@ -71,10 +71,10 @@ describe('useTimeOff', () => {
     const { result } = renderHook(() => useTimeOff());
 
     // Probar con un rango que incluye un fin de semana completo
-    const _startDate = new Date('2024-01-15'); // Lunes
-    const _endDate = new Date('2024-01-21'); // Domingo
+    const startDate = new Date('2024-01-15'); // Lunes
+    const endDate = new Date('2024-01-21'); // Domingo
 
-    const _workingDays = result.current.calculateWorkingDays(
+    const workingDays = result.current.calculateWorkingDays(
       startDate,
       endDate
     );
@@ -86,9 +86,9 @@ describe('useTimeOff', () => {
   it('should handle single day request', () => {
     const { result } = renderHook(() => useTimeOff());
 
-    const _singleDay = new Date('2024-01-15'); // Lunes
+    const singleDay = new Date('2024-01-15'); // Lunes
 
-    const _workingDays = result.current.calculateWorkingDays(
+    const workingDays = result.current.calculateWorkingDays(
       singleDay,
       singleDay
     );
@@ -100,9 +100,9 @@ describe('useTimeOff', () => {
   it('should handle weekend single day request', () => {
     const { result } = renderHook(() => useTimeOff());
 
-    const _weekendDay = new Date('2024-01-13'); // Sábado
+    const weekendDay = new Date('2024-01-13'); // Sábado
 
-    const _workingDays = result.current.calculateWorkingDays(
+    const workingDays = result.current.calculateWorkingDays(
       weekendDay,
       weekendDay
     );
@@ -113,7 +113,7 @@ describe('useTimeOff', () => {
 });
 
 // Funciones de utilidad para pruebas adicionales
-export const _createMockTimeOffRequest = (overrides = {}) => ({
+export const createMockTimeOffRequest = (overrides = {}) => ({
   barber_id: 'test-barber-id',
   start_date: '2024-02-01',
   end_date: '2024-02-05',
@@ -122,7 +122,7 @@ export const _createMockTimeOffRequest = (overrides = {}) => ({
   ...overrides,
 });
 
-export const _createMockTimeOffResponse = (overrides = {}) => ({
+export const createMockTimeOffResponse = (overrides = {}) => ({
   id: 'test-request-id',
   barber_id: 'test-barber-id',
   start_date: '2024-02-01',

@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-// // // // // import { format, startOfWeek, addDays, isSameDay, parse, isWithinInterval, addWeeks, subWeeks } from 'date-fns'
-// // // // // import { es } from 'date-fns/locale'
-// // // // // import { Clock, Calendar, Plus, Trash2, Copy, AlertCircle, ChevronLeft, ChevronRight, Loader2, Settings } from 'lucide-react'
-// // // // // import { Button } from '@/components/ui/button'
-// // // // // import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-// // // // // import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-// // // // // import { Label } from '@/components/ui/label'
-// // // // // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-// // // // // import { Alert, AlertDescription } from '@/components/ui/alert'
-// // // // // import { Separator } from '@/components/ui/separator'
-// // // // // import { Badge } from '@/components/ui/badge'
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// // // // // import { useToast } from '@/hooks/use-toast'
-// // // // // import { availabilityService, BreakRequest } from '@/services/availability.service'
-// // // // // import { barbershopHoursService } from '@/services/barbershop-hours.service'
-// // // // // import { barberSchedulesService } from '@/services/barber-schedules.service'
-// // // // // import { BarberWorkingHours } from './BarberWorkingHours'
+import { format, startOfWeek, addDays, isSameDay, parse, isWithinInterval, addWeeks, subWeeks } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { Clock, Calendar, Plus, Trash2, Copy, AlertCircle, ChevronLeft, ChevronRight, Loader2, Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useToast } from '@/hooks/use-toast'
+import { availabilityService, BreakRequest } from '@/services/availability.service'
+import { barbershopHoursService } from '@/services/barbershop-hours.service'
+import { barberSchedulesService } from '@/services/barber-schedules.service'
+import { BarberWorkingHours } from './BarberWorkingHours'
 import type {
   BarberBreaks,
   BarbershopHours,
@@ -43,7 +43,7 @@ interface WeeklySchedule {
 }
 
 // Días de la semana en español
-const _DAYS_OF_WEEK = [
+const DAYS_OF_WEEK = [
   { key: 'monday', label: 'Lunes' },
   { key: 'tuesday', label: 'Martes' },
   { key: 'wednesday', label: 'Miércoles' },
@@ -54,11 +54,11 @@ const _DAYS_OF_WEEK = [
 ];
 
 // Generar opciones de tiempo cada 15 minutos
-const _generateTimeOptions = () => {
-  const _options = [];
+const generateTimeOptions = () => {
+  const options = [];
   for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
-      const _time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
       options.push(time);
     }
   }
@@ -88,32 +88,32 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [targetWeek, setTargetWeek] = useState<Date | null>(null);
 
-  const _timeOptions = generateTimeOptions();
+  const timeOptions = generateTimeOptions();
 
   // Cargar el horario semanal
-  const _loadWeeklySchedule = useCallback(async () => {
+  const loadWeeklySchedule = useCallback(async () => {
     try {
       setLoading(true);
       const schedule: WeeklySchedule = {};
 
       // Obtener horarios de la barbería
-      const _barbershopSchedule =
+      const barbershopSchedule =
         await barbershopHoursService.getBarbershopSchedule(barbershopId);
 
       // Iterar sobre cada día de la semana
       for (let i = 0; i < 7; i++) {
-        const _currentDate = addDays(currentWeek, i);
-        const _dateStr = format(currentDate, 'yyyy-MM-dd');
-        const _dayOfWeek = format(currentDate, 'EEEE', {
+        const currentDate = addDays(currentWeek, i);
+        const dateStr = format(currentDate, 'yyyy-MM-dd');
+        const dayOfWeek = format(currentDate, 'EEEE', {
           locale: es,
         }).toLowerCase() as DayOfWeek;
 
         // Encontrar el horario de la barbería para este día
-        const _barbershopHours =
+        const barbershopHours =
           barbershopSchedule.find((h) => h.day_of_week === dayOfWeek) || null;
 
         // Obtener breaks del barbero para este día
-        const _breaks = await availabilityService.getBarberBreaks(
+        const breaks = await availabilityService.getBarberBreaks(
           barberId,
           dateStr
         );
@@ -143,14 +143,14 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
   }, [loadWeeklySchedule]);
 
   // Navegar entre semanas
-  const _navigateWeek = (direction: 'prev' | 'next') => {
+  const navigateWeek = (direction: 'prev' | 'next') => {
     setCurrentWeek((prev) =>
       direction === 'prev' ? subWeeks(prev, 1) : addWeeks(prev, 1)
     );
   };
 
   // Abrir diálogo para agregar/editar break
-  const _openBreakDialog = (date: Date, existingBreak?: BarberBreaks) => {
+  const openBreakDialog = (date: Date, existingBreak?: BarberBreaks) => {
     setSelectedDay(date);
     setBreakToEdit(existingBreak || null);
 
@@ -174,7 +174,7 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
   };
 
   // Guardar break
-  const _handleSaveBreak = async () => {
+  const handleSaveBreak = async () => {
     try {
       setSavingBreak(true);
 
@@ -188,8 +188,8 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
         return;
       }
 
-      const _startMinutes = timeToMinutes(breakForm.startTime);
-      const _endMinutes = timeToMinutes(breakForm.endTime);
+      const startMinutes = timeToMinutes(breakForm.startTime);
+      const endMinutes = timeToMinutes(breakForm.endTime);
 
       if (startMinutes >= endMinutes) {
         toast({
@@ -201,15 +201,15 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
       }
 
       // Verificar que el break esté dentro del horario de la barbería
-      const _daySchedule = weeklySchedule[breakForm.date];
+      const daySchedule = weeklySchedule[breakForm.date];
       if (
         daySchedule?.barbershopHours &&
         !daySchedule.barbershopHours.is_closed
       ) {
-        const _openMinutes = timeToMinutes(
+        const openMinutes = timeToMinutes(
           daySchedule.barbershopHours.open_time!
         );
-        const _closeMinutes = timeToMinutes(
+        const closeMinutes = timeToMinutes(
           daySchedule.barbershopHours.close_time!
         );
 
@@ -253,7 +253,7 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
   };
 
   // Eliminar break
-  const _handleDeleteBreak = async (breakId: string) => {
+  const handleDeleteBreak = async (breakId: string) => {
     try {
       await availabilityService.deleteBarberBreak(breakId);
 
@@ -273,7 +273,7 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
   };
 
   // Copiar horario a otra semana
-  const _handleCopyWeek = async () => {
+  const handleCopyWeek = async () => {
     if (!targetWeek) {
       toast({
         title: 'Error',
@@ -287,18 +287,18 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
       setLoading(true);
 
       // Obtener todos los breaks de la semana actual
-      const breaksToeCopy: BreakRequest[] = [];
+      const breaksToCopy: BreakRequest[] = [];
 
       for (let i = 0; i < 7; i++) {
-        const _sourceDate = addDays(currentWeek, i);
-        const _targetDate = addDays(targetWeek, i);
-        const _sourceDateStr = format(sourceDate, 'yyyy-MM-dd');
-        const _targetDateStr = format(targetDate, 'yyyy-MM-dd');
+        const sourceDate = addDays(currentWeek, i);
+        const targetDate = addDays(targetWeek, i);
+        const sourceDateStr = format(sourceDate, 'yyyy-MM-dd');
+        const targetDateStr = format(targetDate, 'yyyy-MM-dd');
 
-        const _daySchedule = weeklySchedule[sourceDateStr];
+        const daySchedule = weeklySchedule[sourceDateStr];
         if (daySchedule?.breaks) {
           for (const breakItem of daySchedule.breaks) {
-            breaksToeCopy.push({
+            breaksToCopy.push({
               barber_id: barberId,
               date: targetDateStr,
               start_time: breakItem.start_time,
@@ -311,7 +311,7 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
 
       // Crear todos los breaks en la semana destino
       await Promise.all(
-        breaksToeCopy.map((b) => availabilityService.createBarberBreak(b))
+        breaksToCopy.map((b) => availabilityService.createBarberBreak(b))
       );
 
       toast({
@@ -334,33 +334,33 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
   };
 
   // Convertir tiempo a minutos
-  const _timeToMinutes = (time: string): number => {
+  const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
     return hours * 60 + minutes;
   };
 
   // Formatear tiempo para mostrar
-  const _formatTimeDisplay = (time: string): string => {
+  const formatTimeDisplay = (time: string): string => {
     const [hours, minutes] = time.split(':');
-    const _hour = parseInt(hours);
-    const _ampm = hour >= 12 ? 'PM' : 'AM';
-    const _displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
   // Verificar si hay conflictos en un día
-  const _hasConflicts = (dateStr: string): boolean => {
-    const _daySchedule = weeklySchedule[dateStr];
+  const hasConflicts = (dateStr: string): boolean => {
+    const daySchedule = weeklySchedule[dateStr];
     if (!daySchedule || !daySchedule.breaks.length) return false;
 
     // Verificar superposición entre breaks
-    const _breaks = daySchedule.breaks;
+    const breaks = daySchedule.breaks;
     for (let i = 0; i < breaks.length; i++) {
       for (let j = i + 1; j < breaks.length; j++) {
-        const _break1Start = timeToMinutes(breaks[i].start_time);
-        const _break1End = timeToMinutes(breaks[i].end_time);
-        const _break2Start = timeToMinutes(breaks[j].start_time);
-        const _break2End = timeToMinutes(breaks[j].end_time);
+        const break1Start = timeToMinutes(breaks[i].start_time);
+        const break1End = timeToMinutes(breaks[i].end_time);
+        const break2Start = timeToMinutes(breaks[j].start_time);
+        const break2End = timeToMinutes(breaks[j].end_time);
 
         if (break1Start < break2End && break1End > break2Start) {
           return true;
@@ -404,7 +404,7 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
           <AlertDescription>
             Usa esta sección para programar descansos temporales o
             excepcionales. Tu horario regular de trabajo y descansos diarios se
-            configura en la pestaña "Mi Horario de Trabajo".
+            configura en la pestaña &quot;Mi Horario de Trabajo&quot;.
           </AlertDescription>
         </Alert>
 
@@ -453,11 +453,11 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
         {/* Vista de calendario semanal */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
           {DAYS_OF_WEEK.map((day, index) => {
-            const _currentDate = addDays(currentWeek, index);
-            const _dateStr = format(currentDate, 'yyyy-MM-dd');
-            const _daySchedule = weeklySchedule[dateStr];
-            const _isToday = isSameDay(currentDate, new Date());
-            const _hasConflict = hasConflicts(dateStr);
+            const currentDate = addDays(currentWeek, index);
+            const dateStr = format(currentDate, 'yyyy-MM-dd');
+            const daySchedule = weeklySchedule[dateStr];
+            const isToday = isSameDay(currentDate, new Date());
+            const hasConflict = hasConflicts(dateStr);
 
             return (
               <Card
@@ -704,7 +704,7 @@ export const BarberScheduleManager: React.FC<BarberScheduleManagerProps> = ({
                 <Label>Semana destino</Label>
                 <div className="space-y-2">
                   {[1, 2, 3, 4].map((weeksAhead) => {
-                    const _week = addWeeks(currentWeek, weeksAhead);
+                    const week = addWeeks(currentWeek, weeksAhead);
                     return (
                       <Button
                         key={weeksAhead}

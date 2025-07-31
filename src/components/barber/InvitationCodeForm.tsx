@@ -1,12 +1,12 @@
-// // // // // import { useState } from 'react';
-// // // // // import { useForm } from 'react-hook-form';
-// // // // // import { zodResolver } from '@hookform/resolvers/zod';
-// // // // // import { z } from 'zod';
-// // // // // import { useMutation } from '@tanstack/react-query';
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// // // // // import { Button } from '@/components/ui/button';
-// // // // // import { Input } from '@/components/ui/input';
-// // // // // import {
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
   Form,
   FormControl,
   FormDescription,
@@ -15,10 +15,10 @@
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-// // // // // import { barberService } from '@/services/barbers.service';
-// // // // // import { Loader2, QrCode } from 'lucide-react';
+import { barberService } from '@/services/barbers.service';
+import { Loader2, QrCode } from 'lucide-react';
 
-const _codeSchema = z.object({
+const codeSchema = z.object({
   code: z.string()
     .min(6, 'El código debe tener 6 caracteres')
     .max(6, 'El código debe tener 6 caracteres')
@@ -40,14 +40,14 @@ export function InvitationCodeForm({
 }: InvitationCodeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const _form = useForm<CodeFormData>({
+  const form = useForm<CodeFormData>({
     resolver: zodResolver(codeSchema),
     defaultValues: {
       code: initialCode.toUpperCase(),
     },
   });
 
-  const _claimInvitationMutation = useMutation({
+  const claimInvitationMutation = useMutation({
     mutationFn: async (code: string) => {
       return barberService.claimInvitation(code);
     },
@@ -60,19 +60,19 @@ export function InvitationCodeForm({
     },
     onError: (error) => {
       console.error('Error claiming invitation:', error);
-      const _message = error instanceof Error ? error.message : 'Código inválido o expirado';
+      const message = error instanceof Error ? error.message : 'Código inválido o expirado';
       onError(message);
       setIsSubmitting(false);
     },
   });
 
-  const _onSubmit = async (data: CodeFormData) => {
+  const onSubmit = async (data: CodeFormData) => {
     setIsSubmitting(true);
     claimInvitationMutation.mutate(data.code);
   };
 
   // Auto-submit if we have an initial code
-  const _handleAutoSubmit = () => {
+  const handleAutoSubmit = () => {
     if (initialCode && form.getValues('code') === initialCode.toUpperCase()) {
       form.handleSubmit(onSubmit)();
     }

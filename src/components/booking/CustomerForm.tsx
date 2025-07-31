@@ -1,11 +1,11 @@
-// // // // // import { useForm } from "react-hook-form";
-// // // // // import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-// // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// // // // // import { Button } from "@/components/ui/button";
-// // // // // import { Input } from "@/components/ui/input";
-// // // // // import { Textarea } from "@/components/ui/textarea";
-// // // // // import {
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -14,9 +14,9 @@ import * as z from "zod";
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-// // // // // import { ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
-const _formSchema = z.object({
+const formSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   phone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
@@ -29,7 +29,7 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({ onSubmit, onBack }: CustomerFormProps) {
-  const _form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",

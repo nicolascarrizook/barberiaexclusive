@@ -1,6 +1,6 @@
-// // // // // import { BaseService } from './base.service'
-// // // // // import { Database } from '@/types/database'
-// // // // // import { supabase } from '@/lib/supabase'
+import { BaseService } from './base.service'
+import { Database } from '@/types/database'
+import { supabase } from '@/lib/supabase'
 
 // Define types for capacity management (will be in database after migration)
 interface CapacityConfig {
@@ -212,18 +212,18 @@ export class CapacityManagementService {
       .eq('barbershop_id', barbershopId)
       .eq('is_active', true);
 
-    const _baseCapacity = barbers?.length || 0;
+    const baseCapacity = barbers?.length || 0;
 
     // Count current appointments
-    const _startTime = `${date}T${time}`;
+    const startTime = `${date}T${time}`;
     const { data: appointments } = await supabase
       .from('appointments')
       .select('id')
       .eq('barbershop_id', barbershopId)
       .eq('start_time', startTime)
-      .in('status', ['scheduled', 'confirmed', 'in_progress']);
+      .in('status', ['pending', 'confirmed', 'in_progress']);
 
-    const _currentBookings = appointments?.length || 0;
+    const currentBookings = appointments?.length || 0;
 
     return {
       available: currentBookings < baseCapacity,
@@ -240,14 +240,14 @@ export class CapacityManagementService {
     barbershopId: string,
     date: string
   ): Promise<CapacityStats> {
-    const _capacity = await this.checkCapacityAvailable(
+    const capacity = await this.checkCapacityAvailable(
       barbershopId,
       date,
       '12:00'
     );
-    const _peakHours = await this.getPeakHours(barbershopId);
+    const peakHours = await this.getPeakHours(barbershopId);
 
-    const _utilizationPercentage =
+    const utilizationPercentage =
       capacity.max_capacity > 0
         ? (capacity.current_capacity / capacity.max_capacity) * 100
         : 0;
@@ -296,12 +296,12 @@ export class CapacityManagementService {
       risk_assessment: string;
     };
   }> {
-    const _currentStats = await this.getCapacityStats(barbershopId, date);
+    const currentStats = await this.getCapacityStats(barbershopId, date);
 
     // Calculate projected stats
-    const _projectedCapacity =
+    const projectedCapacity =
       changes.max_capacity || currentStats.total_capacity;
-    const _projectedOverbooking = changes.allow_overbooking
+    const projectedOverbooking = changes.allow_overbooking
       ? projectedCapacity + (changes.overbooking_limit || 0)
       : projectedCapacity;
 
@@ -311,7 +311,7 @@ export class CapacityManagementService {
       available_slots: projectedOverbooking - currentStats.current_bookings,
     };
 
-    const _capacityChangePercentage =
+    const capacityChangePercentage =
       currentStats.total_capacity > 0
         ? ((projectedCapacity - currentStats.total_capacity) /
             currentStats.total_capacity) *
@@ -345,7 +345,7 @@ export class CapacityManagementService {
 
     // Return mock forecast
     const forecasts: CapacityForecast[] = [];
-    const _currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
 
     for (let i = 0; i < days; i++) {
       forecasts.push({
@@ -412,4 +412,4 @@ export class CapacityManagementService {
   }
 }
 
-export const _capacityManagementService = new CapacityManagementService();
+export const capacityManagementService = new CapacityManagementService();

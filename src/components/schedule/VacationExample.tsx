@@ -1,9 +1,9 @@
 import React from 'react';
-// // // // // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// // // // // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-// // // // // import { VacationRequestForm } from './VacationRequestForm'
-// // // // // import { VacationApprovalPanel } from './VacationApprovalPanel'
-// // // // // import { useAuth } from '@/hooks/useAuth'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { VacationRequestForm } from './VacationRequestForm'
+import { VacationApprovalPanel } from './VacationApprovalPanel'
+import { useAuth } from '@/hooks/useAuth'
 
 /**
  * Componente de ejemplo que muestra cómo usar los componentes de vacaciones

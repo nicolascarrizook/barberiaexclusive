@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ServiceSelection } from "./ServiceSelection";
-import { BarberSelection } from "./BarberSelection";
-import { DateTimeSelection } from "./DateTimeSelection";
+import { DateBarberSelection } from "./DateBarberSelection";
 import { CustomerForm } from "./CustomerForm";
 import { BookingSummary } from "./BookingSummary";
 import { Card } from "@/components/ui/card";
@@ -18,10 +17,9 @@ import { format, set } from "date-fns";
 
 const STEPS = {
   SERVICE: 1,
-  BARBER: 2,
-  DATETIME: 3,
-  CUSTOMER: 4,
-  SUMMARY: 5,
+  DATE_BARBER: 2,
+  CUSTOMER: 3,
+  SUMMARY: 4,
 } as const;
 
 interface BookingFlowProps {
@@ -56,20 +54,15 @@ export function BookingFlow({
 
   const handleServiceNext = () => {
     if (selectedService) {
-      setCurrentStep(STEPS.BARBER);
+      setCurrentStep(STEPS.DATE_BARBER);
     }
   };
 
-  const handleBarberNext = () => {
-    if (selectedBarber) {
-      setCurrentStep(STEPS.DATETIME);
-    }
-  };
-
-  const handleDateTimeNext = () => {
-    if (selectedDate && selectedTime) {
-      setCurrentStep(STEPS.CUSTOMER);
-    }
+  const handleBarberAndTimeSelect = (barber: Barber, date: Date, time: string) => {
+    setSelectedBarber(barber);
+    setSelectedDate(date);
+    setSelectedTime(time);
+    setCurrentStep(STEPS.CUSTOMER);
   };
 
   const handleCustomerSubmit = async (data: typeof customerData) => {
@@ -253,7 +246,7 @@ export function BookingFlow({
       {currentStep !== STEPS.SUMMARY && (
         <div className="mb-8">
           <div className="flex justify-between text-sm text-muted-foreground mb-2">
-            <span>Paso {currentStep} de 4</span>
+            <span>Paso {currentStep} de 3</span>
             <span>{Math.round(progressPercentage)}% completado</span>
           </div>
           <div className="w-full bg-secondary rounded-full h-2">
@@ -290,57 +283,23 @@ export function BookingFlow({
           </ErrorBoundary>
         )}
 
-        {currentStep === STEPS.BARBER && (
+        {currentStep === STEPS.DATE_BARBER && (
           <ErrorBoundary
             level="component"
             fallback={(props) => (
               <ErrorMessage
-                title="Error al cargar los barberos"
-                message="No pudimos cargar la lista de barberos disponibles."
+                title="Error al cargar barberos y horarios"
+                message="No pudimos cargar los barberos y horarios disponibles."
                 severity="error"
                 onRetry={props.resetError}
               />
             )}
           >
-            <BarberSelection
+            <DateBarberSelection
+              services={services}
               barbers={barbers}
-              selectedBarber={selectedBarber}
-              selectedService={selectedService}
-              selectedDate={selectedDate}
-              onSelectBarber={(barber) => {
-                setSelectedBarber(barber);
-                onBarberSelect?.(barber || null);
-              }}
-              onNext={handleBarberNext}
-              onBack={goBack}
-            />
-          </ErrorBoundary>
-        )}
-
-        {currentStep === STEPS.DATETIME && (
-          <ErrorBoundary
-            level="component"
-            fallback={(props) => (
-              <ErrorMessage
-                title="Error al cargar horarios"
-                message="No pudimos cargar los horarios disponibles."
-                severity="error"
-                onRetry={props.resetError}
-              />
-            )}
-          >
-            <DateTimeSelection
-              availableSlots={availableSlots}
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              selectedService={selectedService}
-              selectedBarber={selectedBarber}
-              onSelectDate={(date) => {
-                setSelectedDate(date);
-                onDateSelect?.(date || null);
-              }}
-              onSelectTime={setSelectedTime}
-              onNext={handleDateTimeNext}
+              selectedService={selectedService!}
+              onSelectBarberAndTime={handleBarberAndTimeSelect}
               onBack={goBack}
             />
           </ErrorBoundary>

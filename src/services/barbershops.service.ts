@@ -17,6 +17,15 @@ class BarbershopService extends BaseService<Barbershop> {
     return data || [];
   }
 
+  async getAllSimple(): Promise<Barbershop[]> {
+    const { data, error } = await this.query()
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) this.handleError(error);
+    return data || [];
+  }
+
   async getBySlug(slug: string): Promise<Barbershop | null> {
     const { data, error } = await this.query()
       .select('*')

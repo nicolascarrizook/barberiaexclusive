@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { authService, SignUpData, SignInData } from '@/services/auth.service'
+import { authService, SignUpData, SignInData, ProfileWithBarber } from '@/services/auth.service'
 import { Database } from '@/types/database'
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+type Profile = ProfileWithBarber;
 
 interface AuthContextType {
   user: User | null;

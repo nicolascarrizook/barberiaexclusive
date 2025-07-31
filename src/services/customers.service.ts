@@ -6,16 +6,6 @@ type User = Database['public']['Tables']['profiles']['Row'];
 type UserInsert = Database['public']['Tables']['profiles']['Insert'];
 type UserUpdate = Database['public']['Tables']['profiles']['Update'];
 
-// Guest customer type (not in auth system)
-interface GuestCustomer {
-  id: string;
-  full_name: string;
-  phone: string;
-  email?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
 export interface CustomerWithStats extends User {
   total_appointments: number;
   last_appointment: Date | null;
@@ -31,27 +21,21 @@ class CustomerService extends BaseService<User> {
     full_name: string;
     phone: string;
     email?: string;
-  }): Promise<User | GuestCustomer> {
-    // First check if customer exists in profiles (authenticated users)
-    const existing = await this.getByPhone(customer.phone);
-    if (existing) {
-      console.log('📱 Customer already exists in profiles with phone:', customer.phone);
-      return existing;
+  }): Promise<User> {
+    console.log('🆕 Creating customer:', customer);
+
+    // Check if customer already exists by phone (including guest customers)
+    const existingByPhone = await this.getByPhone(customer.phone);
+    if (existingByPhone) {
+      console.log('📱 Customer already exists with phone:', customer.phone);
+      // Update email if provided and different
+      if (customer.email && existingByPhone.email !== customer.email) {
+        return this.update(existingByPhone.id, { email: customer.email });
+      }
+      return existingByPhone;
     }
 
-    // Check if customer exists in guest_customers
-    const { data: existingGuest, error: guestCheckError } = await supabase
-      .from('guest_customers')
-      .select('*')
-      .eq('phone', customer.phone)
-      .single();
-      
-    if (existingGuest && !guestCheckError) {
-      console.log('📱 Guest customer already exists with phone:', customer.phone);
-      return existingGuest;
-    }
-
-    // If has email, check profiles by email
+    // If has email, check by email
     if (customer.email) {
       const existingByEmail = await this.getByEmail(customer.email);
       if (existingByEmail) {
@@ -64,80 +48,90 @@ class CustomerService extends BaseService<User> {
       }
     }
 
-    // Create as guest customer (no auth required)
-    const newGuestCustomer = {
-      full_name: customer.full_name,
-      phone: customer.phone,
-      email: customer.email || null,
-    };
-
-    console.log('🆕 Creating new guest customer:', newGuestCustomer);
-    
+    // Use the database function to create guest customer
     try {
-      const { data, error } = await supabase
-        .from('guest_customers')
-        .insert(newGuestCustomer)
-        .select()
-        .single();
-        
+      const { data, error } = await supabase.rpc('create_guest_customer', {
+        p_full_name: customer.full_name,
+        p_phone: customer.phone,
+        p_email: customer.email || null
+      });
+      
       if (error) throw error;
-      console.log('✅ Guest customer created:', data);
-      return data;
+      
+      // Get the created customer
+      const createdCustomer = await this.getById(data);
+      if (!createdCustomer) {
+        throw new Error('Failed to retrieve created customer');
+      }
+      
+      console.log('✅ Guest customer created:', createdCustomer);
+      return createdCustomer;
     } catch (error: any) {
       console.error('❌ Error creating guest customer:', error);
-      // If fails due to duplicate, try to find again
-      if (error.message?.includes('duplicate')) {
-        const { data: retryGuest } = await supabase
-          .from('guest_customers')
-          .select('*')
-          .eq('phone', customer.phone)
-          .single();
-        if (retryGuest) return retryGuest;
-      }
       throw error;
     }
   }
 
   async getByPhone(phone: string): Promise<User | null> {
-    const { data, error } = await this.query()
-      .select('*')
-      .eq('phone', phone)
-      .eq('role', 'customer')
-      .single();
+    try {
+      // Search for customer by phone, including guest customers
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('phone', phone)
+        .eq('role', 'customer') // Only get customers
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null; // No encontrado
-      this.handleError(error);
+      if (error) {
+        if (error.code === 'PGRST116') return null; // Not found
+        console.error('Error getting customer by phone:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in getByPhone:', error);
+      return null;
     }
-
-    return data;
   }
 
   async getByEmail(email: string): Promise<User | null> {
-    const { data, error } = await this.query()
-      .select('*')
-      .eq('email', email)
-      .eq('role', 'customer')
-      .single();
+    try {
+      // Search for customer by email, including guest customers
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', email)
+        .eq('role', 'customer') // Only get customers
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      this.handleError(error);
+      if (error) {
+        if (error.code === 'PGRST116') return null; // Not found
+        console.error('Error getting customer by email:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in getByEmail:', error);
+      return null;
     }
-
-    return data;
   }
 
   async searchCustomers(searchTerm: string): Promise<User[]> {
     const { data, error } = await this.query()
       .select('*')
-      .eq('role', 'customer')
+      .eq('role', 'customer') // Only search customers
       .or(
         `full_name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
       )
       .limit(10);
 
-    if (error) this.handleError(error);
+    if (error) {
+      console.error('Error searching customers:', error);
+      return [];
+    }
+    
     return data || [];
   }
 

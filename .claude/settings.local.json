@@ -17,7 +17,10 @@
       "Bash(npm run lint:*)",
       "Bash(sed:*)",
       "Bash(npx eslint:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(npm install:*)",
+      "Bash(npx supabase db dump:*)",
+      "Bash(psql:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

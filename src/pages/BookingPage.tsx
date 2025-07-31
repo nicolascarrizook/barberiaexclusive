@@ -1,222 +1,104 @@
-import { useEffect, useState } from 'react';
-import { BookingFlow } from '@/components/booking/BookingFlow';
-import { Service, Barber, TimeSlot } from '@/types';
-import { useQuery } from '@tanstack/react-query';
-import { servicesService } from '@/services/services.service';
-import { barbersService } from '@/services/barbers.service';
-import { availabilityService } from '@/services/availability.service';
+import { useState, useEffect } from 'react';
+import { BookingFlowV2 } from '@/components/booking/BookingFlowV2';
 import { useToast } from '@/hooks/use-toast';
+import { Service, Barber, TimeSlot } from '@/types';
+import { servicesService } from '@/services/services.service';
+import { barberService } from '@/services/barbers.service';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-const getReasonText = (reason: string): string => {
-  const reasonTexts = {
-    appointment: 'Cita reservada',
-    break: 'Horario de descanso',
-    time_off: 'Vacaciones',
-    closed: 'Barbería cerrada',
-    outside_hours: 'Fuera de horario'
-  };
-  return reasonTexts[reason as keyof typeof reasonTexts] || 'No disponible';
-};
+import { Card } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 
 export function BookingPage() {
   const { toast } = useToast();
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch services from Supabase
-  const {
-    data: services,
-    isLoading: servicesLoading,
-    error: servicesError,
-  } = useQuery({
-    queryKey: ['services'],
-    queryFn: async () => {
-      console.log('Loading services...');
-      try {
-        const data = await servicesService.getAll({
-          filters: { active: true },
-        });
-        console.log('Services loaded:', data);
-        if (!data || data.length === 0) {
-          console.warn('No active services found in database');
-        }
-        return data;
-      } catch (error) {
-        console.error('Error loading services:', error);
-        throw error;
-      }
-    },
-    onError: (error) => {
-      console.error('Services query failed:', error);
-    },
-  });
-
-  // Fetch barbers from Supabase
-  const {
-    data: barbers,
-    isLoading: barbersLoading,
-    error: barbersError,
-  } = useQuery({
-    queryKey: ['barbers'],
-    queryFn: async () => {
-      console.log('Loading barbers...');
-      try {
-        const data = await barbersService.getAll({
-          filters: { active: true },
-        });
-        console.log('Raw barbers data:', data);
-        
-        if (!data || data.length === 0) {
-          console.warn('No active barbers found in database');
-          return [];
-        }
-        
-        // Transform barber data to match the expected format
-        const transformedData = data.map((barber) => ({
-          id: barber.id,
-          name: barber.display_name || barber.full_name,
-          avatar:
-            barber.avatar_url ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(barber.display_name || barber.full_name)}&background=random`,
-          specialties: barber.specialties || [],
-          available: barber.active,
-          barbershop_id: barber.barbershop_id,
-        }));
-        
-        console.log('Transformed barbers:', transformedData);
-        return transformedData;
-      } catch (error) {
-        console.error('Error loading barbers:', error);
-        throw error;
-      }
-    },
-    onError: (error) => {
-      console.error('Barbers query failed:', error);
-    },
-  });
-
-  // Fetch available time slots when service, barber and date are selected
   useEffect(() => {
-    const fetchAvailableSlots = async () => {
-      if (!selectedService || !selectedBarber || !selectedDate) {
-        setAvailableSlots([]);
-        return;
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      
+      // Get barbershop (using first one for now)
+      const { data: barbershops, error: barbershopError } = await supabase
+        .from('barbershops')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (barbershopError || !barbershops) {
+        throw new Error('No se pudo cargar la información de la barbería');
       }
 
-      if (!selectedBarber.barbershop_id) {
-        console.error('Barber does not have barbershop_id');
-        return;
-      }
+      // Load services
+      const servicesData = await servicesService.getServicesByBarbershop(barbershops.id);
+      // Map database services to match the Service interface
+      const mappedServices: Service[] = (servicesData || []).map(service => ({
+        id: service.id,
+        name: service.name,
+        duration_minutes: service.duration_minutes,
+        price: service.price,
+        description: service.description || undefined,
+      }));
+      setServices(mappedServices);
 
-      try {
-        const dayAvailability = await availabilityService.getDayAvailability({
-          barber_id: selectedBarber.id,
-          barbershop_id: selectedBarber.barbershop_id,
-          date: selectedDate.toISOString().split('T')[0],
-          service_duration: selectedService.duration_minutes,
-        });
+      // Load barbers
+      const barbersData = await barberService.getBarbersByBarbershop(barbershops.id);
+      // Map database barbers to match the Barber interface
+      const mappedBarbers: Barber[] = (barbersData || []).map(barber => ({
+        id: barber.id,
+        name: barber.display_name || barber.profile?.full_name || 'Barbero',
+        avatar: barber.profile?.avatar_url || undefined,
+        specialties: barber.specialties || [],
+        available: barber.is_active === true,
+        barbershop_id: barber.barbershop_id,
+      }));
+      setBarbers(mappedBarbers);
 
-        // Transform the availability slots to the expected format
-        const formattedSlots: TimeSlot[] = dayAvailability.slots.map(
-          (slot) => ({
-            time: slot.start.substring(0, 5), // Extract HH:MM from HH:MM:SS
-            available: slot.available,
-            reason: slot.reason,
-            reasonText: slot.reason ? getReasonText(slot.reason) : undefined,
-          })
-        );
+      // Initially empty slots - will be loaded when date/barber are selected
+      setAvailableSlots([]);
+    } catch (error) {
+      console.error('Error loading booking data:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo cargar la información de reserva',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setAvailableSlots(formattedSlots);
-      } catch (error) {
-        console.error('Error fetching available slots:', error);
-        toast({
-          title: 'Error',
-          description: 'No se pudieron cargar los horarios disponibles',
-          variant: 'destructive',
-        });
-      }
-    };
-
-    fetchAvailableSlots();
-  }, [selectedService, selectedBarber, selectedDate, toast]);
-
-  // Loading state
-  if (servicesLoading || barbersLoading) {
+  if (loading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold mb-6">Reservar cita</h1>
-        <div className="space-y-4">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (servicesError || barbersError) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold mb-6">Reservar cita</h1>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            No se pudieron cargar los datos necesarios. Por favor, intenta
-            nuevamente más tarde.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  // No data state
-  if (!services?.length || !barbers?.length) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold mb-6">Reservar cita</h1>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              No hay servicios o barberos disponibles en este momento.
-            </p>
-          </CardContent>
+      <div className="max-w-4xl mx-auto p-4">
+        <Card className="p-6">
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
         </Card>
       </div>
     );
   }
 
-  // Custom handler to track selections for availability
-  const handleServiceSelect = (service: Service | null) => {
-    setSelectedService(service);
-  };
-
-  const handleBarberSelect = (barber: Barber | null) => {
-    setSelectedBarber(barber);
-  };
-
-  const handleDateSelect = (date: Date | null) => {
-    setSelectedDate(date);
-  };
-
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Reservar cita</h1>
-      <BookingFlow
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <BookingFlowV2 
         services={services}
         barbers={barbers}
         availableSlots={availableSlots}
-        onServiceSelect={handleServiceSelect}
-        onBarberSelect={handleBarberSelect}
-        onDateSelect={handleDateSelect}
       />
-    </div>
+    </motion.div>
   );
 }

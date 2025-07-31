@@ -14,6 +14,7 @@ import { AdminDashboard } from '@/pages/admin/Dashboard';
 import { AdminAppointments } from '@/pages/admin/Appointments';
 import { BarberDashboard } from '@/pages/barber/Dashboard';
 import { BarberSchedule } from '@/pages/barber/Schedule';
+import { BarberAppointments } from '@/pages/barber/Appointments';
 import { BarberOnboarding } from '@/pages/barber/Onboarding';
 import { OwnerDashboard } from '@/pages/owner/Dashboard';
 import { OwnerSettings } from '@/pages/owner/Settings';
@@ -24,6 +25,8 @@ import { OwnerHours } from '@/pages/owner/Hours';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ErrorPage } from '@/pages/ErrorPage';
+import { DebugPage } from '@/pages/Debug';
+import { SetupBarbershop } from '@/pages/SetupBarbershop';
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +53,22 @@ export const router = createBrowserRouter([
       {
         path: 'error',
         element: <ErrorPage />,
+      },
+      {
+        path: 'debug',
+        element: (
+          <ProtectedRoute>
+            <DebugPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'setup',
+        element: (
+          <ProtectedRoute>
+            <SetupBarbershop />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -101,6 +120,10 @@ export const router = createBrowserRouter([
           {
             path: 'schedule',
             element: <BarberSchedule />,
+          },
+          {
+            path: 'appointments',
+            element: <BarberAppointments />,
           },
         ],
       },

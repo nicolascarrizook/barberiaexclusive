@@ -2,6 +2,11 @@ import { supabase } from '@/lib/supabase'
 import { Database } from '@/types/database'
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type Barber = Database['public']['Tables']['barbers']['Row'];
+
+export interface ProfileWithBarber extends Profile {
+  barber?: Barber | null;
+}
 
 export interface SignUpData {
   email: string;
@@ -88,7 +93,7 @@ class AuthService {
     if (error) throw error;
   }
 
-  async getProfile(userId: string): Promise<Profile | null> {
+  async getProfile(userId: string): Promise<ProfileWithBarber | null> {
     try {
       // First check if we can get the role from JWT claims
       const session = await this.getCurrentSession();
@@ -102,7 +107,15 @@ class AuthService {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          barber:barbers!barbers_profile_id_fkey (
+            id,
+            display_name,
+            barbershop_id,
+            bio
+          )
+        `)
         .eq('id', userId)
         .maybeSingle();
 

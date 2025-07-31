@@ -40,7 +40,7 @@ export function useAuth() {
   const isCustomer = effectiveRole === 'customer';
   const isOwner = effectiveRole === 'owner';
 
-  // Create a simplified user object with role
+  // Create a simplified user object with role and profile info
   const user = auth.user
     ? {
         id: auth.user.id,
@@ -48,6 +48,7 @@ export function useAuth() {
         name: auth.profile?.full_name || auth.user.email?.split('@')[0] || '',
         avatar: auth.profile?.avatar_url || undefined,
         role: effectiveRole, // Use effective role with fallback
+        profile: auth.profile, // Include full profile
       }
     : null;
 

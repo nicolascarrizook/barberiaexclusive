@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const registerSchema = z
   .object({
@@ -78,7 +79,13 @@ export function RegisterPage() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <motion.form 
+      onSubmit={handleSubmit(onSubmit)} 
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-bold">Crear cuenta</h1>
         <p className="text-sm text-muted-foreground">
@@ -87,7 +94,12 @@ export function RegisterPage() {
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <Label htmlFor="fullName">Nombre completo</Label>
           <Input
             id="fullName"
@@ -100,9 +112,14 @@ export function RegisterPage() {
               {errors.fullName.message}
             </p>
           )}
-        </div>
+        </motion.div>
 
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.15 }}
+        >
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -114,9 +131,14 @@ export function RegisterPage() {
           {errors.email && (
             <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
-        </div>
+        </motion.div>
 
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Label htmlFor="phone">Teléfono</Label>
           <Input
             id="phone"
@@ -128,9 +150,14 @@ export function RegisterPage() {
           {errors.phone && (
             <p className="text-sm text-destructive">{errors.phone.message}</p>
           )}
-        </div>
+        </motion.div>
 
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.25 }}
+        >
           <Label htmlFor="password">Contraseña</Label>
           <Input
             id="password"
@@ -143,9 +170,14 @@ export function RegisterPage() {
               {errors.password.message}
             </p>
           )}
-        </div>
+        </motion.div>
 
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
           <Input
             id="confirmPassword"
@@ -158,9 +190,14 @@ export function RegisterPage() {
               {errors.confirmPassword.message}
             </p>
           )}
-        </div>
+        </motion.div>
 
-        <div className="space-y-2">
+        <motion.div 
+          className="space-y-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.35 }}
+        >
           <Label>Tipo de cuenta</Label>
           <RadioGroup
             value={selectedRole}
@@ -188,26 +225,37 @@ export function RegisterPage() {
               </Label>
             </div>
           </RadioGroup>
-        </div>
+        </motion.div>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creando cuenta...
-          </>
-        ) : (
-          'Crear cuenta'
-        )}
-      </Button>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creando cuenta...
+            </>
+          ) : (
+            'Crear cuenta'
+          )}
+        </Button>
+      </motion.div>
 
-      <div className="text-center text-sm">
+      <motion.div 
+        className="text-center text-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
         <span className="text-muted-foreground">¿Ya tienes cuenta? </span>
         <Link to="/auth/login" className="text-primary hover:underline">
           Inicia sesión
         </Link>
-      </div>
-    </form>
+      </motion.div>
+    </motion.form>
   );
 }

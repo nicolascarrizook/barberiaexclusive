@@ -250,6 +250,7 @@ class AvailabilityService {
 
     // Si el barbero no está trabajando ese día
     if (!barberSchedule || !barberSchedule.is_working) {
+      console.log(`❌ Barber ${barber_id} not working on ${dayOfWeekEnum} (day ${dayOfWeek})`);
       const unavailableSlots = this.generateClosedSlots(baseOpenTime, baseCloseTime, slot_interval, 'outside_hours', 'Barbero no trabaja este día');
       return {
         date,
@@ -272,9 +273,26 @@ class AvailabilityService {
 
     // Obtener citas existentes
     const appointments = await this.getBarberAppointments(barber_id, date);
+    
+    console.log('📅 Appointments for barber on', date, ':', appointments.map(apt => ({
+      id: apt.id,
+      start: apt.start_time,
+      end: apt.end_time,
+      status: apt.status
+    })));
 
     // Obtener breaks del barbero (específicos para esa fecha)
     const breaks = await this.getBarberBreaks(barber_id, date);
+
+    // Debug: Log break times
+    console.log(`🕐 Generating slots for barber ${barber_id} on ${date}:`, {
+      working: `${barberSchedule.start_time} - ${barberSchedule.end_time}`,
+      break: barberSchedule.break_start && barberSchedule.break_end 
+        ? `${barberSchedule.break_start} - ${barberSchedule.break_end}`
+        : 'No break',
+      dayOfWeek: dayOfWeek,
+      is_working: barberSchedule.is_working
+    });
 
     // Generar slots disponibles usando el horario específico del barbero
     const slots = this.generateTimeSlots({
@@ -564,15 +582,26 @@ class AvailabilityService {
     const start = `${date}T${startTime}`;
     const end = `${date}T${endTime}`;
 
+    // Buscar citas que se superpongan con el horario solicitado
+    // Una cita se superpone si:
+    // 1. Comienza antes de que termine la nueva cita Y termina después de que comience la nueva cita
     const { data, error } = await supabase
       .from('appointments')
-      .select('id')
+      .select('id, start_time, end_time')
       .eq('barber_id', barberId)
       .in('status', ['pending', 'confirmed', 'in_progress'])
-      .or(`start_time.lt.${end},end_time.gt.${start}`)
-      .limit(1);
+      .filter('start_time', 'lt', end)
+      .filter('end_time', 'gt', start);
 
     if (error) throw new Error(error.message);
+
+    console.log('🔍 Checking appointment conflict:', {
+      barberId,
+      requestedStart: start,
+      requestedEnd: end,
+      conflictingAppointments: data?.length || 0,
+      conflicts: data
+    });
 
     return (data || []).length > 0;
   }
@@ -591,7 +620,8 @@ class AvailabilityService {
       .select('id')
       .eq('barber_id', barberId)
       .eq('date', date)
-      .or(`start_time.lt.${endTime},end_time.gt.${startTime}`)
+      .filter('start_time', 'lt', endTime)
+      .filter('end_time', 'gt', startTime)
       .limit(1);
 
     if (error) throw new Error(error.message);
@@ -624,6 +654,19 @@ class AvailabilityService {
       appointments,
       barberBreaks,
     } = options;
+    
+    // Debug específico para José el jueves
+    const isJoseThursday = date.includes('2025-07-31') || date.includes('2025-08-07');
+    if (isJoseThursday && breakStart === '16:00:00') {
+      console.log('🚨 DEBUG José Thursday:', {
+        date,
+        breakStart,
+        breakEnd,
+        openTime,
+        closeTime,
+        serviceDuration
+      });
+    }
 
     // Convertir horarios a minutos para facilitar cálculos
     const openMinutes = this.timeToMinutes(openTime);
@@ -648,10 +691,23 @@ class AvailabilityService {
 
       // Verificar horario de almuerzo de la barbería
       if (breakStartMinutes !== null && breakEndMinutes !== null) {
-        if (
-          currentMinutes < breakEndMinutes &&
-          currentMinutes + serviceDuration > breakStartMinutes
-        ) {
+        const hasBreakConflict = currentMinutes < breakEndMinutes &&
+          currentMinutes + serviceDuration > breakStartMinutes;
+        
+        // Debug para el jueves de 16:00-17:00
+        if (slotStart === '16:00' || slotStart === '16:15' || slotStart === '16:30' || slotStart === '16:45') {
+          console.log(`🔍 Break check for slot ${slotStart}:`, {
+            breakStart: breakStart,
+            breakEnd: breakEnd,
+            breakStartMinutes,
+            breakEndMinutes,
+            currentMinutes,
+            serviceDuration,
+            hasConflict: hasBreakConflict
+          });
+        }
+        
+        if (hasBreakConflict) {
           available = false;
           reason = 'break';
           reasonText = 'Horario de descanso';
@@ -660,12 +716,24 @@ class AvailabilityService {
 
       // Verificar citas existentes (obtener información de la cita si existe)
       const conflictingAppointment = appointments.find((apt) => {
-        const aptStart =
-          new Date(apt.start_time).getHours() * 60 +
-          new Date(apt.start_time).getMinutes();
-        const aptEnd =
-          new Date(apt.end_time).getHours() * 60 +
-          new Date(apt.end_time).getMinutes();
+        // Extraer solo la parte de tiempo de las fechas ISO
+        const aptStartTime = apt.start_time.split('T')[1].substring(0, 5); // HH:MM
+        const aptEndTime = apt.end_time.split('T')[1].substring(0, 5); // HH:MM
+        
+        const aptStart = this.timeToMinutes(aptStartTime);
+        const aptEnd = this.timeToMinutes(aptEndTime);
+        
+        // Debug log (comentado para evitar spam)
+        // console.log('🕐 Checking slot conflict:', {
+        //   slotStart: slotStart,
+        //   slotEnd: slotEnd,
+        //   slotMinutes: currentMinutes,
+        //   appointmentStart: aptStartTime,
+        //   appointmentEnd: aptEndTime,
+        //   appointmentMinutes: { start: aptStart, end: aptEnd },
+        //   hasConflict: currentMinutes < aptEnd && currentMinutes + serviceDuration > aptStart
+        // });
+        
         return (
           currentMinutes < aptEnd && currentMinutes + serviceDuration > aptStart
         );
@@ -708,10 +776,13 @@ class AvailabilityService {
   }
 
   /**
-   * Convierte tiempo en formato HH:MM a minutos
+   * Convierte tiempo en formato HH:MM o HH:MM:SS a minutos
    */
   private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
+    // Eliminar segundos si existen (HH:MM:SS -> HH:MM)
+    const timeParts = time.split(':');
+    const hours = parseInt(timeParts[0]);
+    const minutes = parseInt(timeParts[1]);
     return hours * 60 + minutes;
   }
 

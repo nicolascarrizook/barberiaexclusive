@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigation } from '@/components/layout/Navigation';
 import { Toaster } from '@/components/ui/toaster';
 import { SimpleAuthLoader } from '@/components/ui/minimalist-scissors-loader';
+import { BarberSidebar } from '@/components/barber/BarberSidebar';
 
 interface ProtectedLayoutProps {
   requiredRole?: 'admin' | 'barber' | 'customer' | 'owner';
@@ -27,9 +28,22 @@ export function ProtectedLayout({ requiredRole }: ProtectedLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto py-6">
-        <Outlet />
-      </main>
+      {requiredRole === 'barber' ? (
+        <div className="container mx-auto py-6">
+          <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr]">
+            <aside className="hidden md:block">
+              <BarberSidebar />
+            </aside>
+            <main>
+              <Outlet />
+            </main>
+          </div>
+        </div>
+      ) : (
+        <main className="container mx-auto py-6">
+          <Outlet />
+        </main>
+      )}
       <Toaster />
     </div>
   );

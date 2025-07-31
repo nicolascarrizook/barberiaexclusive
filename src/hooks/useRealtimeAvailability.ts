@@ -35,7 +35,7 @@ export function useRealtimeAvailability({
   }, [onUpdate]);
 
   useEffect(() => {
-    if (barberIds.length === 0) return;
+    if (!barberIds || barberIds.length === 0) return;
 
     const unsubscribe = realtimeService.subscribeToAvailability(
       barberIds,
@@ -48,7 +48,7 @@ export function useRealtimeAvailability({
     return () => {
       unsubscribe();
     };
-  }, [barberIds.join(','), handleAvailabilityUpdate]); // Join barberIds to create stable dependency
+  }, [barberIds?.join(',') || '', handleAvailabilityUpdate]); // Join barberIds to create stable dependency
 
   return {
     availability,

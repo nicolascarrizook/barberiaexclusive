@@ -420,7 +420,20 @@ class AppointmentService extends BaseService<Appointment> {
       .order('start_time', { ascending: true });
 
     if (error) this.handleError(error);
+    
     return data || [];
+  }
+
+  async getAppointmentsByBarberDateRange(
+    barberId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<AppointmentWithDetails[]> {
+    return this.getByBarberDateRange(
+      barberId,
+      new Date(startDate),
+      new Date(endDate)
+    );
   }
 
   async cancelAppointment(id: string, reason?: string): Promise<Appointment> {

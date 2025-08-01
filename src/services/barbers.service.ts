@@ -133,11 +133,13 @@ class BarberService extends BaseService<Barber> {
   }
 
   async getBarberRegularSchedule(barberId: string, dayOfWeek: number) {
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeekEnum = dayNames[dayOfWeek];
     const { data, error } = await supabase
       .from('barber_working_hours')
       .select('*')
       .eq('barber_id', barberId)
-      .eq('day_of_week', dayOfWeek)
+      .eq('day_of_week', dayOfWeekEnum)
       .single();
 
     if (error) {

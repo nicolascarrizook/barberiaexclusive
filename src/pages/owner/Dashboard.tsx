@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Store, Calendar, Users, DollarSign, Clock, Settings, TrendingUp, UserCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { barbershopService } from '@/services/barbershops.service';
-import { appointmentService } from '@/services/appointments.service';
+import { appointmentManagementService } from '@/services/appointment-management.service';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -49,11 +49,13 @@ export function OwnerDashboard() {
     queryKey: ['owner-appointments', barbershop?.id, dateRange],
     queryFn: async () => {
       if (!barbershop?.id) return [];
-      return appointmentService.getByBarbershopDateRange(
+      const result = await appointmentManagementService.getAppointmentsByDateRange(
         barbershop.id,
         dateRange.start,
         dateRange.end
       );
+      // Flatten the schedules to get all appointments
+      return result.flatMap(schedule => schedule.appointments);
     },
     enabled: !!barbershop?.id,
   });
@@ -68,7 +70,7 @@ export function OwnerDashboard() {
     totalRevenue:
       appointments
         ?.filter((a) => a.status === 'completed')
-        .reduce((sum, a) => sum + (a.price || 0), 0) || 0,
+        .reduce((sum, a) => sum + (a.total_amount || 0), 0) || 0,
   };
 
   if (barbershopLoading || appointmentsLoading) {
@@ -210,7 +212,24 @@ export function OwnerDashboard() {
       </Tabs>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Citas
+            </CardTitle>
+            <CardDescription>
+              Gestiona todas las citas de tu barbería
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link to="/owner/appointment-management">Ver citas</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -277,11 +296,11 @@ export function OwnerDashboard() {
                 >
                   <div>
                     <p className="font-medium">
-                      {appointment.client?.full_name || 'Cliente'}
+                      {appointment.customer?.full_name || 'Cliente'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {format(
-                        new Date(appointment.start_time),
+                        new Date(appointment.start_at),
                         "d 'de' MMMM 'a las' HH:mm",
                         { locale: es }
                       )}

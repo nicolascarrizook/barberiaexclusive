@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, DollarSign, Users, TrendingUp, AlertCircle } from 'lucide-react';
 import { useBarber } from '@/hooks/useBarber';
-import { appointmentService, AppointmentWithDetails } from '@/services/appointments.service';
+import { appointmentManagementService, type AppointmentListItem } from '@/services/appointment-management.service';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,10 +11,10 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 export function BarberDashboard() {
-  const { barberId, loading: barberLoading, error: barberError } = useBarber();
+  const { barberId, barbershopId, loading: barberLoading, error: barberError } = useBarber();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentListItem[]>([]);
   const [stats, setStats] = useState({
     todayAppointments: 0,
     todayCompleted: 0,
@@ -24,13 +24,13 @@ export function BarberDashboard() {
   });
 
   useEffect(() => {
-    if (barberId) {
+    if (barberId && barbershopId) {
       loadDashboardData();
     }
-  }, [barberId]);
+  }, [barberId, barbershopId]);
 
   const loadDashboardData = async () => {
-    if (!barberId) return;
+    if (!barberId || !barbershopId) return;
 
     setLoading(true);
     try {
@@ -43,32 +43,38 @@ export function BarberDashboard() {
       const monthEnd = endOfMonth(today);
 
       // Get today's appointments
-      const todayAppts = await appointmentService.getByBarberDateRange(
-        barberId,
+      const todayResult = await appointmentManagementService.getAppointmentsByDateRange(
+        barbershopId,
         todayStart,
-        todayEnd
+        todayEnd,
+        barberId
       );
+      const todayAppts = todayResult.flatMap(schedule => schedule.appointments);
 
       // Get week appointments
-      const weekAppts = await appointmentService.getByBarberDateRange(
-        barberId,
+      const weekResult = await appointmentManagementService.getAppointmentsByDateRange(
+        barbershopId,
         weekStart,
-        weekEnd
+        weekEnd,
+        barberId
       );
+      const weekAppts = weekResult.flatMap(schedule => schedule.appointments);
 
       // Get month appointments for earnings
-      const monthAppts = await appointmentService.getByBarberDateRange(
-        barberId,
+      const monthResult = await appointmentManagementService.getAppointmentsByDateRange(
+        barbershopId,
         monthStart,
-        monthEnd
+        monthEnd,
+        barberId
       );
+      const monthAppts = monthResult.flatMap(schedule => schedule.appointments);
 
       // Calculate stats
       const todayCompleted = todayAppts.filter(apt => apt.status === 'completed').length;
       const pendingAppts = todayAppts.filter(apt => apt.status === 'pending').length;
       const monthEarnings = monthAppts
         .filter(apt => apt.status === 'completed')
-        .reduce((sum, apt) => sum + apt.price, 0);
+        .reduce((sum, apt) => sum + apt.total_amount, 0);
 
       setStats({
         todayAppointments: todayAppts.length,
@@ -80,7 +86,7 @@ export function BarberDashboard() {
 
       // Get next 5 upcoming appointments
       const upcomingAppts = todayAppts
-        .filter(apt => new Date(apt.start_time) > new Date() && apt.status !== 'cancelled')
+        .filter(apt => new Date(apt.start_at) > new Date() && apt.status !== 'cancelled')
         .slice(0, 5);
       
       setAppointments(upcomingAppts);

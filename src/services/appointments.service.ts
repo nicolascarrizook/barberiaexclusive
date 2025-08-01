@@ -138,11 +138,13 @@ class AppointmentService extends BaseService<Appointment> {
     if (!service) throw new Error('Servicio no encontrado');
 
     // Obtener horario del barbero para ese día
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = dayNames[date.getDay()];
     const { data: schedule, error: scheduleError } = await supabase
       .from('barber_working_hours')
       .select('start_time, end_time')
       .eq('barber_id', barberId)
-      .eq('day_of_week', date.getDay())
+      .eq('day_of_week', dayOfWeek)
       .maybeSingle();
 
     if (scheduleError) this.handleError(scheduleError);

@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { appointmentService, AppointmentWithDetails } from '@/services/appointments.service';
+import { appointmentManagementService, type AppointmentListItem } from '@/services/appointment-management.service';
 import { barbershopService } from '@/services/barbershops.service';
 import { format, startOfDay, endOfDay, subDays, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -31,7 +31,7 @@ const statusConfig: Record<AppointmentStatus, { label: string; color: string; ic
 
 export function AppointmentsList() {
   const { toast } = useToast();
-  const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'all' | 'today' | 'upcoming' | 'past'>('today');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -98,16 +98,19 @@ export function AppointmentsList() {
           break;
       }
 
-      const data = await appointmentService.getByBarbershopDateRange(
+      const result = await appointmentManagementService.getAppointmentsByDateRange(
         barbershopId,
         startDate,
         endDate
       );
+      
+      // Flatten the schedules to get all appointments
+      const data = result.flatMap(schedule => schedule.appointments);
 
       // Sort by date and time
       const sortedData = data.sort((a, b) => {
-        const dateA = new Date(a.start_time).getTime();
-        const dateB = new Date(b.start_time).getTime();
+        const dateA = new Date(a.start_at).getTime();
+        const dateB = new Date(b.start_at).getTime();
         return selectedTab === 'past' ? dateB - dateA : dateA - dateB;
       });
 
@@ -127,7 +130,7 @@ export function AppointmentsList() {
   const updateAppointmentStatus = async (appointmentId: string, newStatus: AppointmentStatus) => {
     setUpdatingStatus(appointmentId);
     try {
-      await appointmentService.updateAppointmentStatus(appointmentId, newStatus);
+      await appointmentManagementService.updateAppointmentStatus(appointmentId, newStatus);
       
       // Update local state
       setAppointments(prev => 
@@ -152,9 +155,9 @@ export function AppointmentsList() {
     }
   };
 
-  const getAppointmentTime = (appointment: AppointmentWithDetails) => {
-    const start = new Date(appointment.start_time);
-    const end = new Date(appointment.end_time);
+  const getAppointmentTime = (appointment: AppointmentListItem) => {
+    const start = new Date(appointment.start_at);
+    const end = new Date(appointment.end_at);
     return `${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`;
   };
 
@@ -168,16 +171,16 @@ export function AppointmentsList() {
     const matchesSearch = !searchTerm || 
       appointment.customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.barber.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.service.name.toLowerCase().includes(searchTerm.toLowerCase());
+      appointment.services.some(s => s.service.name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     return matchesStatus && matchesSearch;
   });
 
-  const groupAppointmentsByDate = (appointments: AppointmentWithDetails[]) => {
-    const grouped: Record<string, AppointmentWithDetails[]> = {};
+  const groupAppointmentsByDate = (appointments: AppointmentListItem[]) => {
+    const grouped: Record<string, AppointmentListItem[]> = {};
     
     appointments.forEach(appointment => {
-      const dateKey = format(new Date(appointment.start_time), 'yyyy-MM-dd');
+      const dateKey = format(new Date(appointment.start_at), 'yyyy-MM-dd');
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
@@ -187,7 +190,7 @@ export function AppointmentsList() {
     return grouped;
   };
 
-  const renderAppointmentCard = (appointment: AppointmentWithDetails) => {
+  const renderAppointmentCard = (appointment: AppointmentListItem) => {
     const status = appointment.status as AppointmentStatus;
     const StatusIcon = statusConfig[status].icon;
     const isUpdating = updatingStatus === appointment.id;
@@ -248,7 +251,7 @@ export function AppointmentsList() {
                   <div className="flex items-center gap-4">
                     <span className="text-muted-foreground">Servicio:</span>
                     <span className="font-medium">
-                      {appointment.service.name} ({appointment.service.duration_minutes} min) - ${appointment.price}
+                      {appointment.services.map(s => `${s.service.name} (${s.service.duration_minutes} min)`).join(', ')} - ${appointment.total_amount}
                     </span>
                   </div>
 

@@ -62,8 +62,10 @@ npm run perf:bundle            # Visualize bundle composition
 - **Tailwind CSS** for styling
 - **React Hook Form + Zod** for form handling and validation
 - **TanStack Query** for server state management
-- **Zustand** for client state management
+- **Zustand** for client state management (stores in `src/stores/`)
 - **React Router** for navigation
+- **date-fns** for date/time manipulation
+- **Framer Motion** for animations
 
 ### Backend Architecture (Supabase)
 - **PostgreSQL** database with complex relational schema
@@ -179,8 +181,8 @@ Database migrations are in `database/` directory:
 
 1. **Database Changes**: 
    - Update schema files in `database/`
-   - Apply migrations via Supabase SQL editor
-   - Generate types: `npx supabase gen types typescript --project-id [project-id] > src/types/database.generated.ts`
+   - Apply migrations via Supabase SQL editor in the correct order (see Database Migration Files section)
+   - Generate types: `npx supabase gen types typescript --project-id itleyyiyhprvfdbutxbr > src/types/database.generated.ts`
    
 2. **New Features**: 
    - Create service in `src/services/[feature].service.ts` extending BaseService
@@ -408,3 +410,20 @@ The project uses comprehensive pre-commit hooks:
 - Component tests with React Testing Library
 - E2E tests with Playwright (configured but not implemented)
 - Pre-commit hook runs related tests automatically
+
+## Quick Reference
+
+### Common File Locations
+- **Routes**: `src/routes/index.tsx`
+- **Auth Context**: `src/contexts/AuthContext.tsx`
+- **Supabase Client**: `src/lib/supabase.ts`
+- **Utils**: `src/lib/utils.ts`
+- **Types**: `src/types/` (database.ts, database.generated.ts)
+- **Stores**: `src/stores/` (booking, auth stores)
+- **Test Setup**: `src/test/setup.ts`, `src/test/test-utils.tsx`
+
+### Key Database Functions
+- `check_appointment_availability()` - Validates slot availability
+- `get_available_slots()` - Returns available time slots
+- `calculate_barber_capacity()` - Capacity management logic
+- `check_time_off_conflicts()` - Vacation conflict detection

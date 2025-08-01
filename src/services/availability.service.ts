@@ -204,6 +204,7 @@ class AvailabilityService {
     );
 
     // Obtener horario específico del barbero
+    // Pass numeric dayOfWeek - the service will convert it internally
     const barberSchedule = await barberSchedulesService.getDaySchedule(
       barber_id,
       dayOfWeek

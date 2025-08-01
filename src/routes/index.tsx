@@ -12,16 +12,19 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { AdminDashboard } from '@/pages/admin/Dashboard';
 import { AdminAppointments } from '@/pages/admin/Appointments';
+import { AppointmentManagement as AdminAppointmentManagement } from '@/pages/admin/AppointmentManagement';
 import { BarberDashboard } from '@/pages/barber/Dashboard';
 import { BarberSchedule } from '@/pages/barber/Schedule';
 import { BarberAppointments } from '@/pages/barber/Appointments';
 import { BarberOnboarding } from '@/pages/barber/Onboarding';
+import { AppointmentManagement as BarberAppointmentManagement } from '@/pages/barber/AppointmentManagement';
 import { OwnerDashboard } from '@/pages/owner/Dashboard';
 import { OwnerSettings } from '@/pages/owner/Settings';
 import { CreateBarbershop } from '@/pages/owner/CreateBarbershop';
 import { Services } from '@/pages/owner/Services';
 import { Barbers } from '@/pages/owner/Barbers';
 import { OwnerHours } from '@/pages/owner/Hours';
+import { AppointmentManagement as OwnerAppointmentManagement } from '@/pages/owner/AppointmentManagement';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ErrorPage } from '@/pages/ErrorPage';
@@ -100,6 +103,10 @@ export const router = createBrowserRouter([
         path: 'appointments',
         element: <AdminAppointments />,
       },
+      {
+        path: 'appointment-management',
+        element: <AdminAppointmentManagement />,
+      },
     ],
   },
   {
@@ -124,6 +131,10 @@ export const router = createBrowserRouter([
           {
             path: 'appointments',
             element: <BarberAppointments />,
+          },
+          {
+            path: 'appointment-management',
+            element: <BarberAppointmentManagement />,
           },
         ],
       },
@@ -157,6 +168,10 @@ export const router = createBrowserRouter([
       {
         path: 'hours',
         element: <OwnerHours />,
+      },
+      {
+        path: 'appointment-management',
+        element: <OwnerAppointmentManagement />,
       },
     ],
   },
